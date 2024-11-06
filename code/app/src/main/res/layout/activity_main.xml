@@ -30,7 +30,7 @@
         android:layout_gravity="bottom"
         app:menu="@menu/bottom_nav_menu"
         app:labelVisibilityMode="unlabeled" />
-
+  
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
     <Button
         android:id="@+id/buttonOpenProfile"
