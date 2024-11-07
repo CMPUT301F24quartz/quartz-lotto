@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.myapplication.app-mergeDebugResources-53:/values-v24/values-v24.xml",
+            "outputFile": "com.example.myapplication.app-mergeDebugResources-58:/values-v24/values-v24.xml",
             "map": [
                 {
-                    "source": "/Users/ayesha/.gradle/caches/transforms-4/dc8ee1be9566d7a760dce1b576833d09/transformed/appcompat-1.7.0/res/values-v24/values-v24.xml",
+                    "source": "/Users/ayesha/.gradle/caches/transforms-4/c85abe0ce57276da1e7253e78a02f785/transformed/appcompat-1.7.0/res/values-v24/values-v24.xml",
                     "from": {
                         "startLines": "2,3",
                         "startColumns": "4,4",
@@ -14,7 +14,7 @@
                     }
                 },
                 {
-                    "source": "/Users/ayesha/.gradle/caches/transforms-4/1c5ca9bafb51808c25e5d618704c05df/transformed/material-1.12.0/res/values-v24/values-v24.xml",
+                    "source": "/Users/ayesha/.gradle/caches/transforms-4/23609dd56ff4a1decf379c9b280b0f76/transformed/material-1.12.0/res/values-v24/values-v24.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,9,12,15",
                         "startColumns": "4,4,4,4,4,4,4,4",

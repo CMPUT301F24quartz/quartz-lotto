@@ -31,8 +31,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 }
-
-dependencies { implementation(libs.appcompat)
+dependencies {
+    implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
@@ -42,6 +42,8 @@ dependencies { implementation(libs.appcompat)
     implementation(libs.firebase.storage)
     implementation(libs.zxing)
     implementation(libs.firebase.crashlytics.buildtools)
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.appcheck.playintegrity)
     testImplementation(libs.junit)
     implementation(libs.circleimageview)
     implementation(libs.glide)
@@ -62,5 +64,4 @@ dependencies { implementation(libs.appcompat)
     implementation(libs.okhttp.logging.interceptor)
     implementation(libs.google.maps)
     implementation(libs.play.services.location)
-
 }

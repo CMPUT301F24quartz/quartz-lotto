@@ -15,7 +15,7 @@ firebaseStorage = "21.0.1"
 circleimageview = "3.1.0"
 glide = "4.15.1"
 firebaseCrashlyticsBuildtools = "3.0.2"
-
+firebaseAppCheck = "17.0.0"
 
 camerax = "1.2.1"
 mlkit_barcode_scanning = "17.0.3"
@@ -27,6 +27,7 @@ converter_gson = "2.9.0"
 okhttp_logging = "4.9.3"
 googleMaps = "18.1.0"
 location = "21.0.1"
+firebaseAuth = "23.1.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -42,8 +43,6 @@ navigation-ui = { group = "androidx.navigation", name = "navigation-ui", version
 firebase-storage = { group = "com.google.firebase", name = "firebase-storage", version.ref = "firebaseStorage" }
 zxing = "com.journeyapps:zxing-android-embedded:4.3.0"
 circleimageview = { group = "de.hdodenhof", name = "circleimageview", version.ref = "circleimageview" }
-glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
-glide-compiler = { group = "com.github.bumptech.glide", name = "compiler", version.ref = "glide" }
 firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
 camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "camerax" }
 camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
@@ -61,8 +60,11 @@ converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", ve
 okhttp-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp_logging" }
 google-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "googleMaps" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "location" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
 
-
+firebase-appcheck-playintegrity = { group = "com.google.firebase", name = "firebase-appcheck-playintegrity", version.ref = "firebaseAppCheck" }
+glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
+glide-compiler = { group = "com.github.bumptech.glide", name = "compiler", version.ref = "glide" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "googleGmsGoogleServices" }
