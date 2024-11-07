@@ -1,19 +1,16 @@
 package com.example.myapplication;
-import java.util.Date;
-import java.util.List;
-
 
 public class Event {
     private String eventName;
-    private Date date;
+    private String date;
     private String time;
     private String description;
     private int maxAttendees;
-    private Integer maxWaitlist; // Nullable
+    private int maxWaitlist;
     private boolean geolocationEnabled;
-    private String qrCodeLink;
 
-    public Event(String eventName, Date date, String time, String description, int maxAttendees, Integer maxWaitlist, boolean geolocationEnabled, String qrCodeLink) {
+    // Constructor
+    public Event(String eventName, String date, String time, String description, int maxAttendees, int maxWaitlist, boolean geolocationEnabled) {
         this.eventName = eventName;
         this.date = date;
         this.time = time;
@@ -21,7 +18,6 @@ public class Event {
         this.maxAttendees = maxAttendees;
         this.maxWaitlist = maxWaitlist;
         this.geolocationEnabled = geolocationEnabled;
-        this.qrCodeLink = qrCodeLink;
     }
 
     public String getEventName() {
@@ -32,11 +28,11 @@ public class Event {
         this.eventName = eventName;
     }
 
-    public Date getDate() {
+    public String getDate() {
         return date;
     }
 
-    public void setDate(Date date) {
+    public void setDate(String date) {
         this.date = date;
     }
 
@@ -64,11 +60,11 @@ public class Event {
         this.maxAttendees = maxAttendees;
     }
 
-    public Integer getMaxWaitlist() {
+    public int getMaxWaitlist() {
         return maxWaitlist;
     }
 
-    public void setMaxWaitlist(Integer maxWaitlist) {
+    public void setMaxWaitlist(int maxWaitlist) {
         this.maxWaitlist = maxWaitlist;
     }
 
@@ -79,38 +75,40 @@ public class Event {
     public void setGeolocationEnabled(boolean geolocationEnabled) {
         this.geolocationEnabled = geolocationEnabled;
     }
-
-    public String getQrCodeLink() {
-        return qrCodeLink;
-    }
-
-    public void setQrCodeLink(String qrCodeLink) {
-        this.qrCodeLink = qrCodeLink;
-    }
-    
-    public boolean addWaitingUser(UserProfile user, int waitingCapacity) {
-        return waitingList.addWaiter(user, waitingCapacity);
-    }
-    /*
-    Removes a user from the waiting list
-     */
-    public boolean removeWaitingUser(UserProfile user) {
-        return waitingList.removeWaiter(user);
-    }
-    /*
-    Samples a specified number of users from the waiting list
-     */
-    public List<UserProfile> sampleAttendees(int selectedCapacity) {
-        return waitingList.sampleAttendees(selectedCapacity);
-    }
-
-    public void notifySampledAttendees(List<UserProfile> sampledAttendees, Context context, NotificationService notificationService) {
-        for (UserProfile user: sampledAttendees) {
-            String title = "Congratulations!";
-            String description = "You have been selected from the waiting list";
-            NotificationService.sendNotification(user, context, title, description);
-
-        }
-    }
 }
+
+//    public String getQrCodeLink() {
+//        return qrCodeLink;
+//    }
+//
+//    public void setQrCodeLink(String qrCodeLink) {
+//        this.qrCodeLink = qrCodeLink;
+//    }
+//
+
+//    public boolean addWaitingUser(UserProfile user, int waitingCapacity) {
+//        return waitingList.addWaiter(user, waitingCapacity);
+//    }
+//    /*
+//    Removes a user from the waiting list
+//     */
+//    public boolean removeWaitingUser(UserProfile user) {
+//        return waitingList.removeWaiter(user);
+//    }
+//    /*
+//    Samples a specified number of users from the waiting list
+//     */
+//    public List<UserProfile> sampleAttendees(int selectedCapacity) {
+//        return waitingList.sampleAttendees(selectedCapacity);
+//    }
+//
+//    public void notifySampledAttendees(List<UserProfile> sampledAttendees, Context context, NotificationService notificationService) {
+//        for (UserProfile user: sampledAttendees) {
+//            String title = "Congratulations!";
+//            String description = "You have been selected from the waiting list";
+//            NotificationService.sendNotification(user, context, title, description);
+//
+//        }
+//    }
+
 

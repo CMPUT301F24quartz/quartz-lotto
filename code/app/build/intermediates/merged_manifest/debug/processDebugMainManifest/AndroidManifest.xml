@@ -74,8 +74,14 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="YOUR_GOOGLE_MAPS_API_KEY" />
 
+        <activity android:name="com.example.myapplication.MainActivity" />
+        <activity android:name="com.example.myapplication.CreateEventActivity" />
+        <activity android:name="com.example.myapplication.OrganizerProfileActivity" />
+        <activity android:name="com.example.myapplication.ManageNotificationGroupsActivity" />
+        <activity android:name="com.example.myapplication.GroupEntrantsActivity" />
+        <activity android:name="com.example.myapplication.NotificationActivity" />
         <activity
-            android:name="com.example.myapplication.MainActivity"
+            android:name="com.example.myapplication.OrgHomePageActivity"
             android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -83,11 +89,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.example.myapplication.OrganizerProfileActivity" />
-        <activity android:name="com.example.myapplication.ManageNotificationGroupsActivity" />
-        <activity android:name="com.example.myapplication.GroupEntrantsActivity" />
-        <activity android:name="com.example.myapplication.NotificationActivity" />
-
         <!-- Needs to be explicitly declared on P+ -->
         <uses-library
             android:name="org.apache.http.legacy"

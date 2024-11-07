@@ -25,21 +25,22 @@
             android:value="YOUR_GOOGLE_MAPS_API_KEY"/>
 
 
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+        <activity android:name=".MainActivity"/>
+
         <activity android:name=".CreateEventActivity" />
 
         <activity android:name=".OrganizerProfileActivity" />
         <activity android:name=".ManageNotificationGroupsActivity" />
         <activity android:name=".GroupEntrantsActivity" />
         <activity android:name=".NotificationActivity" />
-
+        <activity
+            android:name=".OrgHomePageActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>
