@@ -37,8 +37,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         firestore = FirebaseFirestore.getInstance();
     }
 
-
-
     // This method fetches users based on the groupType and a listener
     public void fetchUsersWithNotificationsEnabled(String groupType, OnUsersFetchedListener listener) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -82,6 +80,5 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     public void onNewToken(@NonNull String token) {
         // Handle token refresh (send to your server if needed)
     }
-
 
 }
