@@ -23,6 +23,15 @@ import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 import java.util.List;
+
+/**
+ * Activity that allows users to manage their facilities, including viewing, adding, and deleting facilities.
+ *
+ * <p>This activity uses Firebase Firestore to store and retrieve facility data, and Firebase Storage
+ * for managing facility images. It also provides anonymous sign-in functionality and loads the user's
+ * facilities on sign-in. Facilities can be added through an Add Facility screen, and they can be deleted
+ * after a confirmation prompt.</p>
+ */
 public class ManageFacilitiesActivity extends AppCompatActivity {
 
     private static final String TAG = "ManageFacilitiesActivity";
@@ -37,16 +46,20 @@ public class ManageFacilitiesActivity extends AppCompatActivity {
     private FirebaseAuth auth;
     private String userId;
 
+    /**
+     * Initializes the activity, sets up Firebase Firestore and authentication, and prepares the facilities list.
+     *
+     * @param savedInstanceState If the activity is being re-initialized after previously being shut down,
+     *                           this Bundle contains the most recent data.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_manage_facilities);
 
-
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
         performAnonymousSignIn();
-
 
         facilitiesRecyclerView = findViewById(R.id.facilities_recycler_view);
         addFacilityButton = findViewById(R.id.add_facility_button);
@@ -55,17 +68,22 @@ public class ManageFacilitiesActivity extends AppCompatActivity {
         facilitiesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         facilitiesRecyclerView.setAdapter(facilitiesAdapter);
 
-
         addFacilityButton.setOnClickListener(v -> {
             Intent intent = new Intent(ManageFacilitiesActivity.this, AddFacilityActivity.class);
             startActivity(intent);
         });
     }
 
+    /**
+     * Performs anonymous sign-in if the user is not already signed in.
+     *
+     * <p>If the user is already signed in, their ID is retrieved, and facilities are loaded for that user.
+     * If anonymous sign-in is required and successful, the facilities are loaded after sign-in.
+     * If sign-in fails, a message is displayed, and the activity finishes.</p>
+     */
     private void performAnonymousSignIn() {
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser == null) {
-
             auth.signInAnonymously()
                     .addOnCompleteListener(this, task -> {
                         if (task.isSuccessful()) {
@@ -83,22 +101,29 @@ public class ManageFacilitiesActivity extends AppCompatActivity {
                         }
                     });
         } else {
-
             userId = currentUser.getUid();
             Log.d(TAG, "User already signed in. User ID: " + userId);
             loadFacilities();
         }
     }
 
+    /**
+     * Reloads the facilities list when the activity resumes.
+     */
     @Override
     protected void onResume() {
         super.onResume();
-
         if (userId != null) {
             loadFacilities();
         }
     }
 
+    /**
+     * Loads the list of facilities for the signed-in user from Firestore.
+     *
+     * <p>This method clears the current list, queries Firestore for facilities matching the
+     * user's ID, and updates the adapter with the retrieved data.</p>
+     */
     private void loadFacilities() {
         if (userId == null) {
             Log.e(TAG, "User ID is null. Cannot load facilities.");
@@ -129,6 +154,14 @@ public class ManageFacilitiesActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Deletes a facility from Firestore and optionally its associated image from Firebase Storage.
+     *
+     * <p>Once the facility is deleted, it is also removed from the local facilities list and
+     * the RecyclerView adapter is updated. In case of a failure, an error message is displayed.</p>
+     *
+     * @param facility the Facility object to delete
+     */
     public void deleteFacility(Facility facility) {
         if (facility == null) {
             Toast.makeText(this, "Error: Facility not found", Toast.LENGTH_SHORT).show();
@@ -138,18 +171,15 @@ public class ManageFacilitiesActivity extends AppCompatActivity {
         String facilityId = facility.getId();
         String imageUrl = (facility.getImageUrls() != null && !facility.getImageUrls().isEmpty()) ? facility.getImageUrls().get(0) : null;
 
-        // delete the facility document from Firestore
         db.collection(FACILITY_COLLECTION).document(facilityId)
                 .delete()
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Facility deleted successfully", Toast.LENGTH_SHORT).show();
 
-                    //if there is an image URL, delete it from Storage as well
                     if (imageUrl != null) {
                         deleteImageFromStorage(imageUrl);
                     }
 
-                    //remove from local list and notify adapter
                     facilitiesList.remove(facility);
                     facilitiesAdapter.notifyDataSetChanged();
                 })
@@ -159,6 +189,11 @@ public class ManageFacilitiesActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Deletes an image from Firebase Storage based on its URL.
+     *
+     * @param imageUrl the URL of the image to delete from Storage
+     */
     private void deleteImageFromStorage(String imageUrl) {
         if (imageUrl == null || imageUrl.isEmpty()) {
             Log.w(TAG, "Image URL is null or empty. Skipping deletion from Storage.");
@@ -167,15 +202,18 @@ public class ManageFacilitiesActivity extends AppCompatActivity {
 
         StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl);
         imageRef.delete()
-                .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Image deleted from Storage successfully.");
-                })
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "Image deleted from Storage successfully."))
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Error deleting image from Storage", Toast.LENGTH_SHORT).show();
                     Log.e(TAG, "Error deleting image from Storage: ", e);
                 });
     }
 
+    /**
+     * Displays a confirmation dialog before deleting a facility.
+     *
+     * @param facility the Facility object to confirm deletion for
+     */
     public void confirmDeleteFacility(Facility facility) {
         new AlertDialog.Builder(this)
                 .setTitle("Delete Facility")

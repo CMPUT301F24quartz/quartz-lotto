@@ -28,10 +28,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/*
-Activity that displays the Add Facility Screen. Users can add facilities using this
+/**
+ * Activity that allows users to add or edit facilities in the application.
+ *
+ * <p>This activity provides a screen where users can add information about a facility,
+ * such as the name, location, and an image. The facility details are stored in Firebase
+ * Firestore and Firebase Storage. When the user selects an image, it is uploaded to
+ * Firebase Storage, and the facility details are saved to Firestore. If the user is editing
+ * an existing facility, the facility's current details are loaded from Firestore.</p>
+ *
+ * <p>Outstanding Issues:</p>
+ * <ul>
+ *   <li>Ensure the user is authenticated before allowing facility details to be saved.</li>
+ *   <li>Handle any additional user permissions for accessing images from external storage.</li>
+ * </ul>
  */
-
 public class AddFacilityActivity extends AppCompatActivity {
 
     private static final String TAG = "AddFacilityActivity";
@@ -39,16 +50,16 @@ public class AddFacilityActivity extends AppCompatActivity {
 
     private ImageView facilityImageView;
     private EditText facilityNameField, facilityLocationField;
-
     private Uri facilityImageUri;
-
     private FirebaseFirestore db;
     private FirebaseStorage storage;
     private FirebaseAuth auth;
     private String userId;
-
     private String facilityId; // If editing an existing facility
 
+    /**
+     * Launcher to handle image selection from external storage.
+     */
     private final ActivityResultLauncher<Intent> imagePickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -91,13 +102,15 @@ public class AddFacilityActivity extends AppCompatActivity {
             loadFacilityDetails(facilityId);
         }
 
-
         uploadFacilityImageButton.setOnClickListener(v -> openImagePicker());
         saveFacilityButton.setOnClickListener(v -> saveFacilityDetails());
     }
 
-    /*
-    Opens the image picker to select an image for the facility
+    /**
+     * Opens the image picker to allow the user to select an image for the facility.
+     *
+     * <p>Launches an intent to open a content selection for images. The selected image URI
+     * is then loaded into the facilityImageView using Glide for display.</p>
      */
     private void openImagePicker() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -106,8 +119,14 @@ public class AddFacilityActivity extends AppCompatActivity {
         Toast.makeText(this, "Select an image for the facility", Toast.LENGTH_SHORT).show();
     }
 
-    /*
-    Loads the details of the facility from Firestore
+    /**
+     * Loads the details of an existing facility from Firestore.
+     *
+     * @param facilityId the ID of the facility to load
+     *
+     * <p>Fetches the facility details from Firestore using the given facility ID. If the
+     * facility exists, its details (name, location, and image) are displayed in the UI. In
+     * case of a failure, an error message is shown to the user.</p>
      */
     private void loadFacilityDetails(String facilityId) {
         db.collection(FACILITY_COLLECTION).document(facilityId)
@@ -134,8 +153,12 @@ public class AddFacilityActivity extends AppCompatActivity {
                 });
     }
 
-    /*
-    uses saveFacilityToFirestore to save the facility details to Firestore
+    /**
+     * Saves the facility details entered by the user, including optional image upload.
+     *
+     * <p>If an image URI is present, it is uploaded to Firebase Storage, and the download URL
+     * is added to the facility data before saving it to Firestore. If the facilityId is not
+     * null, an existing facility is updated; otherwise, a new facility is created in Firestore.</p>
      */
     private void saveFacilityDetails() {
         String name = facilityNameField.getText().toString().trim();
@@ -168,15 +191,25 @@ public class AddFacilityActivity extends AppCompatActivity {
             saveFacilityToFirestore(name, location, null);
         }
     }
-    /*
-    Used to store the facility details to firestore
+
+    /**
+     * Stores the facility data in Firestore, either creating a new facility or updating an
+     * existing one.
+     *
+     * @param name the name of the facility
+     * @param location the location of the facility
+     * @param imageUrls a list of image URLs associated with the facility (can be null)
+     *
+     * <p>The method organizes the facility details into a map and attempts to store it
+     * in Firestore. If a facility ID is provided, the existing facility document is updated.
+     * Otherwise, a new document is created in the "Facilities" collection.</p>
      */
     private void saveFacilityToFirestore(String name, String location, List<String> imageUrls) {
         Map<String, Object> facility = new HashMap<>();
         facility.put("name", name);
         facility.put("location", location);
         facility.put("organizerId", userId);
-        facility.put("imageUrls", imageUrls != null ? imageUrls : new ArrayList<String>()); // make sure imageUrls is never null
+        facility.put("imageUrls", imageUrls != null ? imageUrls : new ArrayList<String>()); // ensure imageUrls is never null
 
         if (facilityId != null) {
             db.collection(FACILITY_COLLECTION).document(facilityId)
@@ -201,6 +234,4 @@ public class AddFacilityActivity extends AppCompatActivity {
                     });
         }
     }
-
 }
-
