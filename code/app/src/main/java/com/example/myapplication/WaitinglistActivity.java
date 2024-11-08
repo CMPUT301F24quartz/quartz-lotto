@@ -161,19 +161,27 @@ public class WaitinglistActivity extends AppCompatActivity {
         }
     }
 
+
     /**
-     * Fetches user data based on the provided user ID.
+     * Fetches user name based on the provided user ID.
      * @param userId
      */
-    private void fetchUserData(String userId) {
-        db.collection("Users").document(userId).get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                DocumentSnapshot userDoc = task.getResult();
-                String name = userDoc.getString("name");
-                Attendee attendee = new Attendee(userId, name, "waiting");
-                attendees.add(attendee);
-                attendeesAdapter.notifyDataSetChanged();
-            }
-        });
+    private void fetchUserName(String userId) {
+        db.collection("Users")
+                .document(userId)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        DocumentSnapshot document = task.getResult();
+                        String userName = document.getString("name");
+
+                        if (userName != null) {
+                            // Add the user to the attendees list
+                            attendees.add(new Attendee(userName, "not chosen"));
+                            attendeesAdapter.notifyDataSetChanged(); // Update RecyclerView
+                        }
+                    }
+                });
     }
+
 }

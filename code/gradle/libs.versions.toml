@@ -4,7 +4,6 @@ firebaseAuth = "23.1.0"
 roboelectric = "4.14.0"
 mockito-core = "3.5.1"
 mockito-inline = "4.11.0"
-
 firebaseAuthVersion = "23.0.1"
 firebaseBom = "33.5.1"
 firebaseMessagingVersion = "24.0.3"
@@ -20,6 +19,7 @@ activity = "1.8.0"
 constraintlayout = "2.1.4"
 googleGmsGoogleServices = "4.4.2"
 firebaseFirestore = "25.1.1"
+mockitoCore = "4.0.0"
 navigationFragment = "2.8.3"
 navigationUi = "2.8.3"
 firebaseStorage = "21.0.1"
@@ -64,7 +64,7 @@ material = { group = "com.google.android.material", name = "material", version.r
 activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
-
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoCore" }
 navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment", version.ref = "navigationFragment" }
 navigation-ui = { group = "androidx.navigation", name = "navigation-ui", version.ref = "navigationUi" }
 firebase-storage = { group = "com.google.firebase", name = "firebase-storage", version.ref = "firebaseStorage" }
