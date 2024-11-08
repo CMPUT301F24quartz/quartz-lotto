@@ -18,6 +18,14 @@ import com.google.firebase.firestore.*;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Fragment that displays a map with markers for each entrant's location for a specific event.
+ *
+ * <p>This fragment utilizes Google Maps to show the locations of event entrants retrieved
+ * from Firestore. Entrants are represented with markers on the map, and the map camera
+ * optionally focuses on the first entrant's location. The map's lifecycle methods are
+ * properly handled to integrate with the Fragment lifecycle.</p>
+ */
 public class EntrantsMapFragment extends Fragment implements OnMapReadyCallback {
 
     private MapView mapView;
@@ -27,6 +35,14 @@ public class EntrantsMapFragment extends Fragment implements OnMapReadyCallback 
 
     private static final String TAG = "EntrantsMapFragment";
 
+    /**
+     * Inflates the fragment layout containing the map view and initializes the map.
+     *
+     * @param inflater The LayoutInflater object that can be used to inflate any views in the fragment.
+     * @param container The parent view that this fragment's UI should be attached to, if any.
+     * @param savedInstanceState The fragment's previously saved state, if any.
+     * @return The View for the fragment's UI.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -40,6 +56,11 @@ public class EntrantsMapFragment extends Fragment implements OnMapReadyCallback 
         return view;
     }
 
+    /**
+     * Called when the map is ready to be used. Sets up initial map settings and fetches entrants' locations.
+     *
+     * @param map The GoogleMap object that is ready to be used.
+     */
     @Override
     public void onMapReady(@NonNull GoogleMap map) {
         googleMap = map;
@@ -47,10 +68,16 @@ public class EntrantsMapFragment extends Fragment implements OnMapReadyCallback 
         // Optional: Customize the map
         googleMap.getUiSettings().setZoomControlsEnabled(true);
 
-        // Fetch entrants' locations
+        // Fetch entrants' locations from Firestore
         fetchEntrantsLocations();
     }
 
+    /**
+     * Retrieves the locations of entrants from Firestore and adds markers to the map for each location.
+     *
+     * <p>Fetches the locations of entrants for a specified event ID and places a marker at each entrant's
+     * location on the map. The camera is moved to the first entrant's location if available.</p>
+     */
     private void fetchEntrantsLocations() {
         String eventId = "EVENT12345"; // Replace with dynamic event ID if applicable
 
@@ -88,42 +115,73 @@ public class EntrantsMapFragment extends Fragment implements OnMapReadyCallback 
     }
 
     // MapView lifecycle methods
+
+    /**
+     * Called when the Fragment is visible to the user and actively running.
+     * Resumes the MapView to keep the map visible and interactive.
+     */
     @Override
     public void onResume() {
         super.onResume();
         mapView.onResume();
     }
 
+    /**
+     * Called when the Fragment becomes visible to the user.
+     * Starts the MapView lifecycle, making the map ready to display.
+     */
     @Override
     public void onStart() {
         super.onStart();
         mapView.onStart();
     }
 
+    /**
+     * Called when the Fragment is no longer started.
+     * Stops the MapView lifecycle to preserve resources.
+     */
     @Override
     public void onStop() {
         super.onStop();
         mapView.onStop();
     }
 
+    /**
+     * Called when the Fragment is paused.
+     * Pauses the MapView lifecycle to pause map activity.
+     */
     @Override
     public void onPause() {
         mapView.onPause();
         super.onPause();
     }
 
+    /**
+     * Called to release memory when the system is running low on memory.
+     * Passes the low-memory state to the MapView.
+     */
     @Override
     public void onLowMemory() {
         super.onLowMemory();
         mapView.onLowMemory();
     }
 
+    /**
+     * Called when the Fragment is destroyed.
+     * Cleans up the MapView resources.
+     */
     @Override
     public void onDestroy() {
         mapView.onDestroy();
         super.onDestroy();
     }
 
+    /**
+     * Called to save the fragment state before a configuration change.
+     * Saves the MapView's state to retain map configuration.
+     *
+     * @param outState Bundle in which to save the state of the Fragment.
+     */
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);

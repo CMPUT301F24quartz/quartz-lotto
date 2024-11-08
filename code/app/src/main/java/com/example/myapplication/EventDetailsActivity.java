@@ -12,6 +12,13 @@ import com.bumptech.glide.Glide;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+/**
+ * Activity to display detailed information about a specific event.
+ *
+ * <p>This activity retrieves event details from Firestore using an event ID and displays
+ * the event's name, date, time, description, and poster image. If the event ID is not found or
+ * an error occurs, a message is displayed to the user.</p>
+ */
 public class EventDetailsActivity extends AppCompatActivity {
 
     private TextView eventNameTextView, dateTextView, timeTextView, descriptionTextView;
@@ -19,6 +26,12 @@ public class EventDetailsActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private String eventId;
 
+    /**
+     * Initializes the activity, retrieves the event ID from the intent, and loads the event details.
+     *
+     * @param savedInstanceState If the activity is being re-initialized after previously being shut down,
+     *                           this Bundle contains the most recent data.
+     */
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,6 +55,15 @@ public class EventDetailsActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Loads the event details from Firestore based on the provided event ID.
+     *
+     * <p>This method fetches the event's name, date, time, description, and poster URL from
+     * Firestore and displays them in the UI. If the poster URL is available, it is loaded
+     * into the ImageView using Glide.</p>
+     *
+     * @param eventId the ID of the event to load
+     */
     private void loadEventDetails(String eventId) {
         DocumentReference eventRef = db.collection("Events").document(eventId);
         eventRef.get()

@@ -21,6 +21,14 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Activity that allows users to create a new event with details such as name, date, time, description,
+ * maximum attendees, and optional poster image. Users can also generate a QR code for the event link.
+ *
+ * <p>This activity handles user input for event creation, saves the event details to Firebase Firestore,
+ * uploads a poster image to Firebase Storage if provided, and generates a QR code that links to the event.
+ * QR code generation uses the event ID for referencing the event in the app.</p>
+ */
 public class CreateEventActivity extends AppCompatActivity {
     private EditText eventNameEditText, dateEditText, timeEditText, descriptionEditText, maxAttendeesEditText, maxWaitlistEditText;
     private CheckBox geolocationCheckBox;
@@ -68,9 +76,7 @@ public class CreateEventActivity extends AppCompatActivity {
         uploadPosterButton.setOnClickListener(v -> openPosterPicker());
 
         // Set up listeners
-        saveButton.setOnClickListener(view -> {
-            saveEvent();
-        });
+        saveButton.setOnClickListener(view -> saveEvent());
 
         generateQRButton.setOnClickListener(view -> {
             if (qrCodeLink != null && !qrCodeLink.isEmpty()) {
@@ -81,12 +87,23 @@ public class CreateEventActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Opens the file picker to allow the user to select an image as the event poster.
+     *
+     * <p>The selected image URI is stored in the {@code posterUri} field for later upload
+     * to Firebase Storage.</p>
+     */
     private void openPosterPicker() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
         posterPickerLauncher.launch(intent);
     }
 
+    /**
+     * Displays a date picker dialog to let the user select the event date.
+     *
+     * <p>Upon selection, the chosen date is formatted and set in the {@code dateEditText} field.</p>
+     */
     private void showDatePicker() {
         final Calendar calendar = Calendar.getInstance();
         int year = calendar.get(Calendar.YEAR);
@@ -103,6 +120,11 @@ public class CreateEventActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
 
+    /**
+     * Displays a time picker dialog to let the user select the event time.
+     *
+     * <p>Upon selection, the chosen time is formatted and set in the {@code timeEditText} field.</p>
+     */
     private void showTimePicker() {
         final Calendar calendar = Calendar.getInstance();
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
@@ -120,6 +142,11 @@ public class CreateEventActivity extends AppCompatActivity {
 
     /**
      * Generates a QR code for the event and displays it in the ImageView.
+     *
+     * @param qrCodeLink the event link to encode in the QR code
+     *
+     * <p>The generated QR code contains a link that allows users to access the event
+     * directly from a scan.</p>
      */
     private void generateQRCode(String qrCodeLink) {
         try {
@@ -133,7 +160,11 @@ public class CreateEventActivity extends AppCompatActivity {
     }
 
     /**
-     * Saves the event details to Firestore.
+     * Saves the event details to Firestore, including an optional poster upload.
+     *
+     * <p>The event details, including name, date, time, description, max attendees,
+     * and QR code link, are saved to Firestore. If a poster is selected, it is uploaded
+     * to Firebase Storage. Upon successful save, the QR code is generated and displayed.</p>
      */
     private void saveEvent() {
         String eventName = eventNameEditText.getText().toString();
@@ -185,6 +216,15 @@ public class CreateEventActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Uploads the selected poster image to Firebase Storage and updates the event record
+     * in Firestore with the poster URL.
+     *
+     * @param eventId the ID of the event to which the poster is associated
+     *
+     * <p>This method uploads the poster to Firebase Storage, then updates the Firestore
+     * event record with the download URL of the poster image.</p>
+     */
     private void uploadPoster(String eventId) {
         FirebaseStorage storage = FirebaseStorage.getInstance();
         StorageReference storageRef = storage.getReference().child("posters/" + eventId + ".jpg");
