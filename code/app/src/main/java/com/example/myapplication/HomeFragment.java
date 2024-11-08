@@ -28,11 +28,11 @@ import java.util.List;
 import java.util.Map;
 
 public class HomeFragment extends Fragment {
+    public static final int CREATE_EVENT_REQUEST_CODE = 1;
     private ListView eventsListView;
     private FirebaseFirestore db;
     private List<String> eventNamesList;
     private List<String> eventIdsList;
-    private static final int CREATE_EVENT_REQUEST_CODE = 1;
 
     @Nullable
     @Override
@@ -67,7 +67,7 @@ public class HomeFragment extends Fragment {
     /**
      * Loads events from Firestore and populates the eventsListView.
      */
-    private void loadEvents() {
+    void loadEvents() {
         CollectionReference eventsRef = db.collection("Events");
         eventsRef.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {

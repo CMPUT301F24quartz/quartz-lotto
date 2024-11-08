@@ -18,7 +18,7 @@ public class AdminProfileActivity extends AppCompatActivity {
     // UI elements
     private EditText editTextName, editTextEmail, editTextDOB, editTextContact;
     private Button buttonSave;
-    private CheckBox checkBoxNotifications;
+    private Button checkBoxNotifications;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,12 +29,12 @@ public class AdminProfileActivity extends AppCompatActivity {
         sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
         // Initialize UI elements
-        editTextName = findViewById(R.id.editTextName);
-        editTextEmail = findViewById(R.id.editTextEmail);
-        editTextDOB = findViewById(R.id.editTextDOB);
-        editTextContact = findViewById(R.id.editTextContact);
-        buttonSave = findViewById(R.id.buttonSave);
-        checkBoxNotifications = findViewById(R.id.checkBoxNotifications);
+        editTextName = findViewById(R.id.name_field);
+        editTextEmail = findViewById(R.id.email_field);
+        editTextDOB = findViewById(R.id.dob_field);
+        editTextContact = findViewById(R.id.phone_field);
+        buttonSave = findViewById(R.id.save_changes_button);
+        checkBoxNotifications = findViewById(R.id.buttonManageNotifications);
 
         // Load existing profile information
         loadUserProfile();
@@ -62,8 +62,6 @@ public class AdminProfileActivity extends AppCompatActivity {
         editTextDOB.setText(dob);
         editTextContact.setText(contact);
 
-        // Set CheckBox based on notification preference
-        checkBoxNotifications.setChecked(receiveNotifications);
     }
 
 
