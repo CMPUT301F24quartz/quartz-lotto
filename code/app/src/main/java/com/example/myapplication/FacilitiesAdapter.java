@@ -111,6 +111,11 @@ public class FacilitiesAdapter extends RecyclerView.Adapter<FacilitiesAdapter.Fa
     /**
      * ViewHolder class that represents each facility item in the RecyclerView.
      */
+    public Facility getItem(int position) {
+        return facilities.get(position);
+    }
+
+
     public static class FacilityViewHolder extends RecyclerView.ViewHolder {
         TextView nameTextView, locationTextView;
         ImageView facilityImageView;

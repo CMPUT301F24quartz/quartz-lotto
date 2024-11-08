@@ -31,7 +31,8 @@ import java.util.List;
  * for managing facility images. It also provides anonymous sign-in functionality and loads the user's
  * facilities on sign-in. Facilities can be added through an Add Facility screen, and they can be deleted
  * after a confirmation prompt.</p>
- */
+/*
+
 public class ManageFacilitiesActivity extends AppCompatActivity {
 
     private static final String TAG = "ManageFacilitiesActivity";
@@ -44,6 +45,7 @@ public class ManageFacilitiesActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
     private FirebaseAuth auth;
+    private FirebaseStorage storage;
     private String userId;
 
     /**
@@ -52,6 +54,19 @@ public class ManageFacilitiesActivity extends AppCompatActivity {
      * @param savedInstanceState If the activity is being re-initialized after previously being shut down,
      *                           this Bundle contains the most recent data.
      */
+
+    public void setAuth(FirebaseAuth auth) {
+        this.auth = auth;
+    }
+
+    public void setFirestore(FirebaseFirestore db) {
+        this.db = db;
+    }
+
+    public void setStorage(FirebaseStorage storage) {
+        this.storage = storage;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,6 +74,18 @@ public class ManageFacilitiesActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
+
+        if (auth == null) {
+            auth = FirebaseAuth.getInstance();
+        }
+        if (db == null) {
+            db = FirebaseFirestore.getInstance();
+        }
+
+        if (storage == null) {
+            storage = FirebaseStorage.getInstance();
+        }
+        
         performAnonymousSignIn();
 
         facilitiesRecyclerView = findViewById(R.id.facilities_recycler_view);
@@ -124,7 +151,8 @@ public class ManageFacilitiesActivity extends AppCompatActivity {
      * <p>This method clears the current list, queries Firestore for facilities matching the
      * user's ID, and updates the adapter with the retrieved data.</p>
      */
-    private void loadFacilities() {
+
+    void loadFacilities() {
         if (userId == null) {
             Log.e(TAG, "User ID is null. Cannot load facilities.");
             Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();

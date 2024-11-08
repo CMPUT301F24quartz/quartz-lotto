@@ -1,7 +1,9 @@
 [versions]
 agp = "8.6.0"
 firebaseAuth = "23.1.0"
-roboelectric = "4.5.1"
+roboelectric = "4.14.0"
+mockito-core = "3.5.1"
+mockito-inline = "4.11.0"
 firebaseAuthVersion = "23.0.1"
 firebaseBom = "33.5.1"
 firebaseMessagingVersion = "24.0.3"
@@ -42,6 +44,9 @@ rules = "1.6.1"
 
 [libraries]
 
+recyclerView = { group = "androidx.recyclerview", name = "recyclerview", version = "1.3.0" }
+mockitoCore = { group = "org.mockito", name = "mockito-core", version.ref = "mockito-core" }
+mockitoInline = { group = "org.mockito", name = "mockito-inline", version.ref = "mockito-inline" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 firebase-auth = { module = "com.google.firebase:firebase-auth", version.ref = "firebaseAuth" }
 firebase-auth-v2301 = { module = "com.google.firebase:firebase-auth", version = "12.0.1" }

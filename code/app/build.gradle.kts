@@ -7,10 +7,11 @@ android {
     namespace = "com.example.myapplication"
     compileSdk = 34
 
+
     defaultConfig {
         applicationId = "com.example.myapplication"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 33
         versionCode = 1
         versionName = "1.0"
 
@@ -31,16 +32,20 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
-    tasks.withType<Test>{
-        useJUnitPlatform()
+    testOptions {
+
+        unitTests {
+            isIncludeAndroidResources = true
+        }
     }
 }
+
 
 dependencies {
     implementation(libs.firebase.messaging)  // Add Firebase Messaging
     implementation(libs.appcompat)
     implementation(platform(libs.firebase.bom)) // Check the latest version on Firebase docs
-
+    implementation(libs.recyclerView)
     implementation(libs.material)
     implementation(libs.activity)
     implementation (libs.firebase.auth.v2301)
@@ -56,6 +61,9 @@ dependencies {
     implementation(libs.rules)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
+    // Mockito Inline for mocking static methods
+    testImplementation(libs.mockitoCore)
+    testImplementation(libs.mockitoInline)
     implementation(libs.circleimageview)
     implementation(libs.glide)
     testImplementation(libs.core)
@@ -85,3 +93,4 @@ dependencies {
     implementation(libs.play.services.location)
 
 }
+
