@@ -2,4 +2,6 @@
 <resources>
     <item
         name="checkbox_chosen_from_waiting_list" type="id" />
+    <item name="fragment_container" type="id"/>
+
 </resources>

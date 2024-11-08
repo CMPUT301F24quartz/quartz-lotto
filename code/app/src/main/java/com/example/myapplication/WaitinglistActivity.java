@@ -24,6 +24,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/*
+Waitlist only currently shows one member at a time. Need to fix this bug for halfway.
+ */
 public class WaitinglistActivity extends AppCompatActivity {
 
     private RecyclerView recyclerViewAttendees;
@@ -85,44 +88,78 @@ public class WaitinglistActivity extends AppCompatActivity {
 //            }
 //        });
 //    }
-    /**
-     * Loads the waitlist for a specific event from Firestore.
-     * This method fetches the waitlist data of the event identified by the provided event ID,
-     * iterates through the entries, extracts the user IDs and statuses, and populates the attendee list
-     * for users with a "not chosen" status. The attendee list is then passed to the `AttendeeAdapter` for display.
-     *
-     * @param eventId The unique ID of the event whose waitlist is to be loaded.
-     */
-    private void loadEventWaitlist(String eventId) {
-        db.collection("Waitlist")
-                .whereEqualTo("event_id", eventId) // Filter by event_id
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && task.getResult() != null) {
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            // Get the waitlist data
-                            Map<String, Object> waitlistData = document.getData();
 
-                            // Check each user in the waitlist
-                            for (Map.Entry<String, Object> entry : waitlistData.entrySet()) {
-                                // Skip non-user fields (like event_id)
-                                if (entry.getKey().startsWith("user_")) {
-                                    List<String> userInfo = (List<String>) entry.getValue();
-                                    String status = userInfo.get(1); // User's status (not chosen, waiting, etc.)
+    public void loadEventWaitlist(String eventId) {
+        DocumentReference eventRef = db.collection("Events").document(eventId);
 
-                                    // If status is "not chosen", add the user to the list
-                                    if ("not chosen".equals(status)) {
-                                        String userId = userInfo.get(0); // User profile ID
-                                        // Fetch the user's name from the "Users" collection
-                                        fetchUserName(userId);
+        eventRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DocumentSnapshot document = task.getResult();
+                if (document != null && document.exists()) {
+                    // Retrieve the waitlist_id
+                    String waitListId = document.getString("waitlist_id");
+
+                    if (waitListId != null) {
+                        // Fetch the waitlist document from the Waitlists collection
+                        DocumentReference waitRef = db.collection("Waitlists").document(waitListId);
+
+                        waitRef.get().addOnCompleteListener(task1 -> {
+                            if (task1.isSuccessful()) {
+                                DocumentSnapshot document_wait = task1.getResult();
+                                if (document_wait != null && document_wait.exists()) {
+                                    List<Attendee> selectedEntries = new ArrayList<>();
+
+                                    // Iterate through each field in the waitlist document
+                                    for (String key : document_wait.getData().keySet()) {
+                                        // Skip non-user fields
+                                        if (key.startsWith("user_")) {
+                                            // Each user field is an array with [username, status]
+                                            List<Object> userData = (List<Object>) document_wait.get(key);
+                                            if (userData != null && userData.size() > 1) {
+                                                String username = (String) userData.get(0);
+                                                String status = (String) userData.get(1);
+
+                                                // Only add attendees with "not chosen" status
+                                                if ("not chosen".equals(status)) {
+                                                    Attendee attendee = new Attendee("", username, status);
+                                                    selectedEntries.add(attendee);
+                                                }
+                                            }
+                                        }
                                     }
-                                }
-                            }
-                        }
-                    }
-                });
-    }
 
+                                    // Update the adapter's data with the selected entries
+                                    attendeesAdapter = new AttendeeAdapter(selectedEntries, true, false);
+                                    recyclerViewAttendees.setAdapter(attendeesAdapter);
+                                    attendeesAdapter.notifyDataSetChanged();
+                                } else {
+                                    Log.d("WaitinglistActivity", "Waitlist document does not exist.");
+                                }
+                            } else {
+                                Log.e("WaitinglistActivity", "Error getting waitlist document: ", task1.getException());
+                            }
+                        });
+                    } else {
+                        Log.d("WaitinglistActivity", "No waitlist_id found in event.");
+                    }
+                } else {
+                    Log.d("WaitinglistActivity", "Event document does not exist.");
+                }
+            } else {
+                Log.e("WaitinglistActivity", "Error getting event document: ", task.getException());
+            }
+        });
+    }
+    /**
+     * Loads attendees based on the selected entries.
+     * @param selectedEntries
+     */
+    private void loadAttendees(List<Object> selectedEntries) {
+        for (Object userId : selectedEntries) {
+            // fetch user data based on userId
+            fetchUserData(userId.toString());
+        }
+    }
 
 
     /**

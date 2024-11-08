@@ -23,6 +23,9 @@ import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 import java.util.List;
+/*
+Activity View for managing facilities
+ */
 public class ManageFacilitiesActivity extends AppCompatActivity {
 
     private static final String TAG = "ManageFacilitiesActivity";
@@ -35,16 +38,36 @@ public class ManageFacilitiesActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
     private FirebaseAuth auth;
+    private FirebaseStorage storage;
     private String userId;
+
+    public void setAuth(FirebaseAuth auth) {
+        this.auth = auth;
+    }
+
+    public void setFirestore(FirebaseFirestore db) {
+        this.db = db;
+    }
+
+    public void setStorage(FirebaseStorage storage) {
+        this.storage = storage;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_manage_facilities);
 
+        if (auth == null) {
+            auth = FirebaseAuth.getInstance();
+        }
+        if (db == null) {
+            db = FirebaseFirestore.getInstance();
+        }
 
-        db = FirebaseFirestore.getInstance();
-        auth = FirebaseAuth.getInstance();
+        if (storage == null) {
+            storage = FirebaseStorage.getInstance();
+        }
         performAnonymousSignIn();
 
 
@@ -99,7 +122,7 @@ public class ManageFacilitiesActivity extends AppCompatActivity {
         }
     }
 
-    private void loadFacilities() {
+    void loadFacilities() {
         if (userId == null) {
             Log.e(TAG, "User ID is null. Cannot load facilities.");
             Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();

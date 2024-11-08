@@ -25,13 +25,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HomeFragment extends Fragment {
-    private RecyclerView eventsListView;
+    public static final int CREATE_EVENT_REQUEST_CODE = 1;
+    private ListView eventsListView;
     private FirebaseFirestore db;
     private List<String> eventNamesList;
     private List<String> eventIdsList;
-    private EventAdapter adapter;
-    private ListenerRegistration listenerRegistration;
-    private static final int CREATE_EVENT_REQUEST_CODE = 1;
+
 
     @Nullable
     @Override

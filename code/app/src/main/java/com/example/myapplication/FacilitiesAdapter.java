@@ -73,6 +73,11 @@ import java.util.List;public class FacilitiesAdapter extends RecyclerView.Adapte
         return facilities.size();
     }
 
+    public Facility getItem(int position) {
+        return facilities.get(position);
+    }
+
+
     public static class FacilityViewHolder extends RecyclerView.ViewHolder {
         TextView nameTextView, locationTextView;
         ImageView facilityImageView;
