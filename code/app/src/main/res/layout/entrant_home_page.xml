@@ -8,7 +8,6 @@
     android:padding="16dp">
 
     <!-- Home Page Title -->
-
     <LinearLayout
         android:id="@+id/linearLayout"
         android:layout_width="380dp"
@@ -30,30 +29,51 @@
 
     <!-- Events List Section -->
     <LinearLayout
-        android:id="@+id/linearLayout2"
-        android:layout_width="wrap_content"
-        android:layout_height="431dp"
+        android:id="@+id/event_section"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_above="@+id/bottom_navigation"
         android:layout_below="@+id/linearLayout"
         android:layout_marginTop="15dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="10dp"
         android:orientation="vertical">
 
+        <!-- My Events Section -->
+        <TextView
+            android:id="@+id/selected_events_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="Selected"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
         <ListView
-            android:id="@+id/event_list"
+            android:id="@+id/selected_events_list"
             android:layout_width="match_parent"
-            android:layout_height="495dp"
-            android:layout_weight="1"></ListView>
+            android:layout_height="200dp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Selected Events Section -->
+        <TextView
+            android:id="@+id/waitlist_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="Waitlist"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <ListView
+            android:id="@+id/entrant_waitlist"
+            android:layout_width="match_parent"
+            android:layout_height="200dp" />
 
     </LinearLayout>
 
-    <!-- Create Event Button -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
-
     <!-- Bottom Navigation -->
-
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="375dp"
