@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case R.id.nav_profile:
                     // Start OrgProfileActivity instead of navigating to a Fragment
-                    Intent intent = new Intent(this, OrganizerProfileActivity.class);
+                    Intent intent = new Intent(this, AdminProfileActivity.class);
                     startActivity(intent);
                     return true;
             }
