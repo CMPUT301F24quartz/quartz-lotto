@@ -1,11 +1,13 @@
 package com.example.myapplication.Views;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.myapplication.Controllers.HomePageController;
 import com.example.myapplication.EventAdapter;
 import com.example.myapplication.Models.Event;
 import com.example.myapplication.R;
@@ -39,18 +41,38 @@ public class HomeView extends AppCompatActivity {
 
 
         //SILLY SAMPLE DATA
-        selectedEvents.add(new EntrantSelectedEvent(1, "svt night 1", "2024-11-09"));
-        selectedEvents.add(new EntrantSelectedEvent(2, "svt night 2", "2024-11-10"));
+        selectedEvents.add(new Event(
+                "1",
+                "SVT Night 1",
+                "2024-11-09",
+                "7:00 PM",
+                "Join us for an exciting SVT Night!",
+                100, // maxAttendees
+                50,  // maxWaitlist
+                true, // geolocationEnabled
+                "qr_code_link_1" // QR Code link
+        ));
 
-        selectedEventsAdapter = new EventAdapter(this, selectedEvents, true);
+        selectedEvents.add(new Event(
+                "2",
+                "SVT Night 2",
+                "2024-11-10",
+                "8:00 PM",
+                "Another great SVT Night event!",
+                150, // maxAttendees
+                70,  // maxWaitlist
+                true, // geolocationEnabled
+                "qr_code_link_2" // QR Code link
+        ));
 
+        selectedEventsAdapter = new HomePageController(this, selectedEvents, true);
 
         selectedEventsListView.setAdapter(selectedEventsAdapter);
 
     }
 
     // Confirm an event from the waitlist to the selected list
-    public void confirmEvent(EntrantSelectedEvent event) {
+    public void confirmEvent(Event event) {
         selectedEvents.add(event);
         selectedEventsAdapter.notifyDataSetChanged();
 
@@ -58,11 +80,7 @@ public class HomeView extends AppCompatActivity {
     }
 
     // Delete an event from either list
-    public void deleteEvent(EntrantSelectedEvent event, boolean isSelectedList) {
-        if (isSelectedList) {
-            selectedEvents.remove(event);
-            selectedEventsAdapter.notifyDataSetChanged();
-        }
+    public void deleteEvent(Event event) {
 
         Toast.makeText(this, "Event Deleted", Toast.LENGTH_SHORT).show();
     }
