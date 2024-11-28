@@ -9,9 +9,11 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.myapplication.Models.Event;
 import com.example.myapplication.R;
+import com.example.myapplication.Repositories.HomeRepository;
 
 import java.util.List;
 
@@ -19,11 +21,14 @@ public class HomePageController extends BaseAdapter {
     private Context context;
     private List<Event> selectedEvents;
     private boolean isSelectedList;
+    private HomeRepository homeRepository;
+
 
     public HomePageController(Context context, List<Event> events, boolean isSelectedList) {
         this.context = context;
         this.selectedEvents = events;
         this.isSelectedList = isSelectedList;
+        this.homeRepository = new HomeRepository();
     }
 
     @Override
@@ -54,6 +59,24 @@ public class HomePageController extends BaseAdapter {
     @Override
     public boolean hasStableIds() {
         return false;
+    }
+
+    // Confirm an event: Update status to 'confirmed'
+    public void onConfirmEvent(Event event) {
+        homeRepository.setEventStatusToConfirmed(event.getEventId());
+        Toast.makeText(context, "Event Confirmed", Toast.LENGTH_SHORT).show();
+    }
+
+    // Decline an event: Update status to 'cancelled'
+    public void onDeclineEvent(Event event) {
+        homeRepository.setEventStatusToCancelled(event.getEventId());
+        Toast.makeText(context, "Event Declined", Toast.LENGTH_SHORT).show();
+    }
+
+    // Select an event: Update status to 'waiting'
+    public void onSelectEvent(Event event) {
+        homeRepository.setEventStatusToWaiting(event.getEventId());
+        Toast.makeText(context, "Event Added to Waitlist", Toast.LENGTH_SHORT).show();
     }
 
     @Override
