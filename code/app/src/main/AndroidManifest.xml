@@ -67,8 +67,11 @@
         <activity android:name=".AdminProfileActivity" />
         <activity android:name=".BrowseUsersActivity" />
         <activity android:name=".BrowseFacilitiesActivity" />
+        <activity android:name=".BrowseEventsActivity" />
         <activity android:name=".EventSignupActivity" />
         <activity android:name=".BrowseImagesActivity"/>
+        <activity android:name=".Views.HomeView"/>
+        <activity android:name=".Views.OrganizerProfileView"/>
 
     </application>
 </manifest>
