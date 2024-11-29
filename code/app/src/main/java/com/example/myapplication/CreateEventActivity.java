@@ -1,5 +1,7 @@
 package com.example.myapplication;
 
+import static android.app.PendingIntent.getActivity;
+
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
@@ -15,7 +17,8 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
-import com.google.firebase.firestore.FieldValue;
+import com.example.myapplication.Models.Event;
+import com.example.myapplication.Models.Facility;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.*;
 import com.google.zxing.BarcodeFormat;
@@ -184,7 +187,6 @@ public class CreateEventActivity extends BaseActivity { // Extends BaseActivity
             Toast.makeText(this, "Error generating QR code", Toast.LENGTH_SHORT).show();
         }
     }
-
     /**
      * Saves the event details to Firestore.
      */
@@ -241,6 +243,10 @@ public class CreateEventActivity extends BaseActivity { // Extends BaseActivity
 
         boolean geolocationEnabled = geolocationCheckBox.isChecked();
 
+        if (geolocationEnabled) {
+            Toast.makeText(this, "WARNING: You are joining an event that requires geolocation.", Toast.LENGTH_SHORT).show();
+        }
+
         // Retrieve the current user's device ID
         String organizerId = retrieveDeviceId(); // Changed from getUserId() to retrieveDeviceId()
         if (organizerId == null) {
@@ -258,22 +264,15 @@ public class CreateEventActivity extends BaseActivity { // Extends BaseActivity
         // Generate QR code link using eventId
         qrCodeLink = "eventapp://event/" + eventId;
 
-        // Create event data
-        Map<String, Object> eventData = new HashMap<>();
-        eventData.put("eventName", eventName);
-        eventData.put("drawDate", date);
-        eventData.put("eventDateTime", time);
-        eventData.put("description", description);
-        eventData.put("maxAttendees", maxAttendees);
-        eventData.put("currentAttendees", 0); // Initialize to 0
-        eventData.put("maxWaitlist", maxWaitlist); // Nullable
-        eventData.put("geolocationEnabled", geolocationEnabled);
-        eventData.put("qrCodeLink", qrCodeLink);
-        eventData.put("posterUrl", ""); // Placeholder, will update after uploading
-        eventData.put("organizerId", organizerId); // Add organizerId
+        // Create Facility object if needed, else set to null
+        Facility facility = null; // Adjust as per your application's logic
+
+        // Create Event object
+        Event event = new Event(eventId, eventName, date, time, description,
+                maxAttendees, maxWaitlist, geolocationEnabled, qrCodeLink, "", 0, organizerId, facility);
 
         // Save event to Firestore
-        db.collection("Events").document(eventId).set(eventData)
+        db.collection("Events").document(eventId).set(event)
                 .addOnSuccessListener(aVoid -> {
                     Log.d("Firestore", "Event saved successfully.");
                     Toast.makeText(this, "Event saved successfully", Toast.LENGTH_SHORT).show();
@@ -293,6 +292,7 @@ public class CreateEventActivity extends BaseActivity { // Extends BaseActivity
                     resetSaveButton();
                 });
     }
+
 
     /**
      * Resets the save button and related UI elements after the save operation.

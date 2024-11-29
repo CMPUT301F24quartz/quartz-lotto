@@ -1,5 +1,7 @@
 package com.example.myapplication.Models;
 
+
+
 import static android.content.ContentValues.TAG;
 
 import android.Manifest;
@@ -31,7 +33,7 @@ public class NotificationService {
     private String channelId;
 
     public static void sendNotification(User user) {
-        if (user.getNotificationsPerm()) {
+        if (user.isNotificationsPerm()) {
 
         }
     }

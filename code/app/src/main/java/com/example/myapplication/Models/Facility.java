@@ -1,5 +1,8 @@
 package com.example.myapplication.Models;
 
+/*
+Model class for the facility
+ */
 public class Facility {
     private String ImageUrl;
     private String location;

@@ -1,6 +1,9 @@
 //ayesha
 package com.example.myapplication.Models;
 
+/*
+Model class for Image Storage
+ */
 public class StorageImage {
     private String name;
     private String path;
