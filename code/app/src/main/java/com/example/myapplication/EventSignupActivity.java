@@ -336,6 +336,8 @@ public class EventSignupActivity extends BaseActivity {
             Log.e(TAG, "Location not obtained before sign-up.");
             resetSignupButton();
             return;
+        } else {
+            Toast.makeText(this, "WARNING: You are signing up for an event that requires geolocation", Toast.LENGTH_SHORT).show();
         }
 
         Log.d(TAG, "Attempting to sign up user with ID: " + userId + " at location: " + userLatitude + ", " + userLongitude);

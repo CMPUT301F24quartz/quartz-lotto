@@ -25,9 +25,8 @@ public class HomeRepository extends BaseActivity {
 
     // Method to fetch events where the device is on the waitlist with "waiting" status
     public void fetchWaitingDevices(HomeView homeView) {
-        String deviceId = "TA9jSDvfKDX6wP3ueVO5nTwrf4D3"; // Sample device ID
+        String targetDeviceId = "TA9jSDvfKDX6wP3ueVO5nTwrf4D3"; // Sample device ID
         List<Event> deviceWaitlistEvents = new ArrayList<>(); // List to store Event objects for display
-
 
             // Query all events from the "events" collection
             db.collection("events")
@@ -48,8 +47,9 @@ public class HomeRepository extends BaseActivity {
                                             if (waitlistTask.isSuccessful()) {
                                                 // Loop through each device document in the waitlist
                                                 for (QueryDocumentSnapshot waitlistDoc : waitlistTask.getResult()) {
+                                                    Log.d("FirestoreDebug", "Fetched waitlist documents: " + waitlistTask.getResult().size());
                                                     // Check if document ID matches the target device ID
-                                                    if (deviceId.equals(waitlistDoc.getId())) {
+                                                    if (targetDeviceId.equals(waitlistDoc.getId())) {
                                                         String status = waitlistDoc.getString("status"); // Get status field
 
                                                         // Check if status equals "waiting"
