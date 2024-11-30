@@ -4,6 +4,7 @@ import static android.content.ContentValues.TAG;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -39,6 +40,7 @@ public class HomeView extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_page);
 
+
         selectedEventsListView = findViewById(R.id.selected_events_list);
         waitlistEventsListView = findViewById(R.id.entrant_waitlist);
 
@@ -51,12 +53,16 @@ public class HomeView extends AppCompatActivity {
         waitlistEventsListView.setAdapter(waitlistEventsAdapter);
 
         // Initialize HomeRepository and fetch waitlist events
-        HomeRepository homeRepository = new HomeRepository();
-        homeRepository.fetchWaitingDevices(this);
+        updateWaitlistEvents(waitlistEvents);
+
     }
+
+
 
     // Method to update waitlist events in the UI
     public void updateWaitlistEvents(List<Event> waitlistEvents) {
+        HomeRepository homeRepository = new HomeRepository();
+        homeRepository.fetchWaitingDevices(this);
         this.waitlistEvents.clear(); // Clear existing waitlist
         this.waitlistEvents.addAll(waitlistEvents); // Add new events to the waitlist
         waitlistEventsAdapter.notifyDataSetChanged(); // Notify adapter to refresh UI

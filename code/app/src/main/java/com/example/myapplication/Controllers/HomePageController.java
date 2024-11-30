@@ -8,10 +8,14 @@ import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.myapplication.Models.Event;
 import com.example.myapplication.R;
+import com.example.myapplication.Repositories.HomeRepository;
+import com.example.myapplication.Views.HomeView;
 
 import java.util.List;
 
@@ -38,15 +42,29 @@ public class HomePageController extends ArrayAdapter<Event> {
         // Find the TextViews inside item_waitlist_event
         TextView eventNameTextView = convertView.findViewById(R.id.event_name_text);
         TextView eventDateTimeTextView = convertView.findViewById(R.id.date_text);
+        ListView waitlistEvent = convertView.findViewById(R.id.entrant_waitlist);
+        Button leaveWaitlistButton = convertView.findViewById(R.id.leave_button);
 
-        // Bind data from the event to the TextViews
+
         if (event != null) {
             eventNameTextView.setText(event.getEventName());
             eventDateTimeTextView.setText(event.getEventDateTime());
         }
 
+
+        leaveWaitlistButton.setOnClickListener(view -> {
+
+            events.remove(position); // Remove the event at the current position
+            notifyDataSetChanged();  // Notify the adapter to update the list view
+
+            // Now call HomeRepository to remove the device ID from Firebase
+            HomeRepository.removeFromWaitlist(event.getEventName());
+
+            Toast.makeText(context, "You have left the event: " + event.getEventName(), Toast.LENGTH_SHORT).show();
+        });
         return convertView;
     }
+
 
 //        if (convertView == null) {
 //            convertView = LayoutInflater.from(context).inflate(R.layout.item_event_selected_list, parent, false);
