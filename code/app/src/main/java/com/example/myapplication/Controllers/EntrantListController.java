@@ -9,6 +9,8 @@ import com.example.myapplication.Views.AttendeeListView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import com.example.myapplication.Models.Attendee;
+import com.example.myapplication.Models.EntrantList;
 
 /*
 Used to handle parsing of data before passing to View for EntrantList
@@ -18,21 +20,23 @@ public class EntrantListController {
     private HashMap<String, String> repoList;
     private WaitingListView waitlistFragment;
     private AttendeesFragment attendeeFragment;
+    private EntrantList entrantList;
 
     //Constructor
     public EntrantListController() {
         this.repository = new EntrantListRepository();
     }
+    public interface AttendeesCallback {
+        void onComplete(ArrayList<Attendee> attendees, Exception e);
+    }
 
     public void fetchEntrantList(String eventId, String status, EntrantListRepository.FetchEntrantListCallback callback) {
         // Directly retrieve the HashMap from the repository
-         repository.getEntrantlist(eventId, status, new EntrantListRepository.FirestoreCallback() {
+        repository.getEntrantlist(eventId, status, new EntrantListRepository.FirestoreCallback() {
             @Override
-            public void onSuccess(HashMap<String, String> data) {
+            public void onSuccess(ArrayList<Attendee> data) {
                 Log.d("EntrantListController", "Data received in Controller: " + data);
-                ArrayList<String> waitingList = new ArrayList<>(data.values());
-                Log.d("EntrantListController", "Fetched Entrant List in Controller: " + waitingList);
-                callback.onFetchEntrantListSuccess(waitingList);
+                callback.onFetchEntrantListSuccess(data);
             }
 
             @Override
@@ -41,6 +45,31 @@ public class EntrantListController {
                 System.err.println("Error fetching entrant list: " + e.getMessage());
             }
         });
+    }
+
+    /*
+    Method that connects to the draw button on WaitlistFragment
+     */
+    public void drawAttendees(String eventId, boolean redraw) {
+        if (redraw) {
+            int size = 1;
+            repository.sampleAttendees(eventId, size);
+            Log.d("EntrantListController", "AttendeeSize" + size);
+        } else {
+            repository.getAttendeeListSize(eventId, new EntrantListRepository.Callback<Long>() {
+                @Override
+                public void onComplete(Long result, Exception e) {
+                    if (e != null) {
+                        Log.e("EntrantListController", "Error in getting attendee size" + result);
+                    }
+                    int size = result.intValue();
+                    Log.d("EntrantListController", "Got attendee size" + size);
+                    repository.sampleAttendees(eventId, size);
+
+                }
+            });
+
+        }
     }
 
 }

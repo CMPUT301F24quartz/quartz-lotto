@@ -57,8 +57,10 @@
         <activity android:name=".CreateEventActivity" />
 <!--        <activity android:name=".WaitinglistActivity" />-->
 <!--        <activity android:name=".AttendingActivity" />-->
+
         <activity android:name=".Views.OrganizerProfileView" />
         <activity android:name=".ManageNotificationGroupsActivity" />
+
         <activity android:name=".GroupEntrantsActivity" />
         <activity android:name=".Views.ManageFacilityView" />
         <activity android:name=".Views.AddFacilityView" />
@@ -71,6 +73,10 @@
         <activity android:name=".EventSignupActivity" />
         <activity android:name=".BrowseImagesActivity"/>
         <activity android:name=".Views.HomeView"/>
+        <activity android:name=".Views.OrganizerProfileView"/>
+        <activity android:name=".OrganizerNotificationActivity"/>
+        <activity android:name=".EventWaitlistActivity"/>
+        <activity android:name=".ManageQrLinksActivity"/>
 
     </application>
 </manifest>

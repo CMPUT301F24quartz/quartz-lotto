@@ -1,4 +1,3 @@
-// File: app/src/main/java/com/example/myapplication/EventSignupActivity.java
 package com.example.myapplication;
 
 import android.Manifest;
@@ -240,14 +239,14 @@ public class EventSignupActivity extends BaseActivity {
                         String description = documentSnapshot.getString("description");
                         String posterUrl = documentSnapshot.getString("posterUrl");
                         Long maxAttendeesLong = documentSnapshot.getLong("maxAttendees");
-                        Long currentAttendeesLong = documentSnapshot.getLong("currentAttendees");
+                        Long currentWaitlistLong = documentSnapshot.getLong("currentWaitlist");
 
                         int maxAttendees = maxAttendeesLong != null ? maxAttendeesLong.intValue() : 0;
-                        int currentAttendees = currentAttendeesLong != null ? currentAttendeesLong.intValue() : 0;
+                        int currentWaitlist = currentWaitlistLong != null ? currentWaitlistLong.intValue() : 0;
 
                         Log.d(TAG, "Event Details - Name: " + eventName + ", Draw Date: " + drawDate +
                                 ", Event Time: " + eventDateTime + ", Max Attendees: " + maxAttendees +
-                                ", Current Attendees: " + currentAttendees);
+                                ", Currently Waiting: " + currentWaitlist);
 
                         // Update UI
                         eventNameTextView.setText(eventName);
@@ -255,7 +254,7 @@ public class EventSignupActivity extends BaseActivity {
                         timeTextView.setText("Time: " + eventDateTime);
                         descriptionTextView.setText(description);
                         maxAttendeesTextView.setText("Max Attendees: " + maxAttendees);
-                        currentAttendeesTextView.setText("Current Attendees: " + currentAttendees);
+                        currentAttendeesTextView.setText("Currently Waiting: " + currentWaitlist);
 
                         if (posterUrl != null && !posterUrl.isEmpty()) {
                             Glide.with(this)
@@ -326,6 +325,37 @@ public class EventSignupActivity extends BaseActivity {
         });
     }
 
+
+    private void addToHomepageWaitlist() {
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+
+        String userDeviceId = retrieveDeviceId();
+        String eventName = eventNameTextView.getText().toString();
+        String drawDate = dateTextView.getText().toString();
+        String eventDateTime = timeTextView.getText().toString();
+
+        // Prepare waitlist data
+        Map<String, Object> waitlistEntry = new HashMap<>();
+        waitlistEntry.put("userId", userDeviceId);
+        waitlistEntry.put("userStatus", "waiting");
+
+        // Navigate to events -> eventId -> waitlist and add the user
+        firestore.collection("Events")
+                .document(eventId) // Navigate to the specific event
+                .collection("Waitlist") // automatically creates waitlist collection if it doesn't exist
+                .document(userDeviceId) // Use user ID as the document ID for uniqueness
+                .set(waitlistEntry)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "User added to event waitlist with status 'not chosen'.");
+                    Toast.makeText(this, "Successfully added to the waitlist!", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to add user to event waitlist: " + e.getMessage());
+                    Toast.makeText(this, "Failed to add to the waitlist.", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+
     /**
      * Performs the event sign-up operation, storing user location in Firestore.
      */
@@ -343,7 +373,6 @@ public class EventSignupActivity extends BaseActivity {
         Log.d(TAG, "Attempting to sign up user with ID: " + userId + " at location: " + userLatitude + ", " + userLongitude);
 
         DocumentReference eventRef = db.collection("Events").document(eventId);
-        DocumentReference attendeeRef = eventRef.collection("Attendees").document(userId);
         DocumentReference waitlistRef = eventRef.collection("Waitlist").document(userId);
 
         db.runTransaction(transaction -> {
@@ -354,55 +383,31 @@ public class EventSignupActivity extends BaseActivity {
                         FirebaseFirestoreException.Code.NOT_FOUND);
             }
 
-            // Check if user is already in Attendees
-            DocumentSnapshot attendeeSnapshot = transaction.get(attendeeRef);
-            if (attendeeSnapshot.exists()) {
-                Log.e(TAG, "User already signed up in Attendees.");
+            // Check if user is already in Waitlist
+            /*DocumentSnapshot waitlistSnapshot = transaction.get(waitlistRef);
+            if (waitlistSnapshot.exists()) {
+                Log.e(TAG, "User already signed up for Event.");
                 throw new FirebaseFirestoreException("User already signed up for the event.",
                         FirebaseFirestoreException.Code.ALREADY_EXISTS);
-            }
-
-            // Check if user is already in Waitlist
-            DocumentSnapshot waitlistSnapshot = transaction.get(waitlistRef);
-            if (waitlistSnapshot.exists()) {
-                Log.e(TAG, "User already on the Waitlist.");
-                throw new FirebaseFirestoreException("User already on the waitlist.",
-                        FirebaseFirestoreException.Code.ALREADY_EXISTS);
-            }
+            }*/
 
             // Check event capacity
-            Long maxAttendeesLong = eventSnapshot.getLong("maxAttendees");
-            Long currentAttendeesLong = eventSnapshot.getLong("currentAttendees");
+            Long maxWaitlistLong = eventSnapshot.getLong("maxWaitlist");
+            Long currentWaitlistLong = eventSnapshot.getLong("currentWaitlist");
 
-            int maxAttendees = maxAttendeesLong != null ? maxAttendeesLong.intValue() : 0;
-            int currentAttendees = currentAttendeesLong != null ? currentAttendeesLong.intValue() : 0;
+            int maxWaitlist = maxWaitlistLong != null ? maxWaitlistLong.intValue() : 0;
+            int currentWaitlist = currentWaitlistLong != null ? currentWaitlistLong.intValue() : 0;
 
-            Log.d(TAG, "Event Capacity - Current Attendees: " + currentAttendees + ", Max Attendees: " + maxAttendees);
-
-            if (currentAttendees < maxAttendees) {
-                // Add attendee and store location
-                Map<String, Object> attendeeData = new HashMap<>();
-                attendeeData.put("userName", userName);
-                attendeeData.put("userEmail", userEmail);
-                attendeeData.put("status", "Attending");
-                attendeeData.put("latitude", userLatitude);      // Dynamic latitude
-                attendeeData.put("longitude", userLongitude);    // Dynamic longitude
-                transaction.set(attendeeRef, attendeeData);
-
-                // Update current attendees
-                transaction.update(eventRef, "currentAttendees", FieldValue.increment(1));
-
-                Log.d(TAG, "User added to Attendees.");
-
-            } else {
+            if ((currentWaitlist < maxWaitlist) | (maxWaitlist == 0)){ // maxWaitlist is an optional input
                 // Add to waitlist and store location
                 Map<String, Object> waitlistData = new HashMap<>();
                 waitlistData.put("userName", userName);
                 waitlistData.put("userEmail", userEmail);
-                waitlistData.put("status", "Waitlisted");
+                waitlistData.put("status", "waiting");
                 waitlistData.put("latitude", userLatitude);      // Dynamic latitude
                 waitlistData.put("longitude", userLongitude);    // Dynamic longitude
                 transaction.set(waitlistRef, waitlistData);
+                transaction.update(eventRef, "currentWaitlist", FieldValue.increment(1));
 
                 Log.d(TAG, "User added to Waitlist.");
             }

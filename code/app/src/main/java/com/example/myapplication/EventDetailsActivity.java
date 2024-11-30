@@ -11,6 +11,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.example.myapplication.AttendeesFragment;
+import com.example.myapplication.Views.WaitingListView;
+
 /**
  * Activity to display event details and handle fragment switching with buttons.
  */
@@ -32,7 +35,7 @@ public class EventDetailsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_event_details); // Your XML layout file
 
         // Retrieve eventId from intent
-        eventId = "H8CEhmiH2BfiUXXDvcJa";//getIntent().getStringExtra("eventId");
+        eventId = getIntent().getStringExtra("eventId");
         if (eventId == null) {
             Toast.makeText(this, "Event ID missing.", Toast.LENGTH_SHORT).show();
             Log.e(TAG, "eventId is null in onCreate");
@@ -50,7 +53,7 @@ public class EventDetailsActivity extends AppCompatActivity {
 
         // Set up button click listeners with tags
         buttonDetails.setOnClickListener(v -> loadFragment(DetailsFragment.newInstance(eventId), "DetailsFragmentTag"));
-        buttonWaitlist.setOnClickListener(v -> loadFragment(WaitlistFragment.newInstance(eventId), "WaitlistFragmentTag"));
+        buttonWaitlist.setOnClickListener(v -> loadFragment(WaitingListView.newInstance(eventId), "WaitlistFragmentTag"));
         buttonAttendees.setOnClickListener(v -> loadFragment(AttendeesFragment.newInstance(eventId), "AttendeesFragmentTag"));
         buttonLocations.setOnClickListener(v -> loadFragment(LocationsFragment.newInstance(eventId), "LocationsFragmentTag"));
 
@@ -76,7 +79,7 @@ public class EventDetailsActivity extends AppCompatActivity {
      */
     public void refreshAttendees() {
         // Refresh the AttendeesFragment
-        AttendeesFragment attendeesFragment = (AttendeesFragment) getSupportFragmentManager()
+        com.example.myapplication.AttendeesFragment attendeesFragment = (com.example.myapplication.AttendeesFragment) getSupportFragmentManager()
                 .findFragmentByTag("AttendeesFragmentTag");
         if (attendeesFragment != null) {
             attendeesFragment.fetchAttendees();

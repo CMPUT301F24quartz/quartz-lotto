@@ -5,228 +5,204 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.text.Editable;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.*;
-
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.AppCompatActivity;
-
+import androidx.annotation.Nullable;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.example.myapplication.Views.AddFacilityView;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import de.hdodenhof.circleimageview.CircleImageView;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import de.hdodenhof.circleimageview.CircleImageView;
-
+/**
+ * EditProfileActivity allows entrants to edit their profile and updates data on Firestore.
+ */
 public class EditProfileActivity extends BaseActivity {
 
-    private static final int MIN_AGE = 1;
-    private static final int MAX_AGE = 100;
+    private static final String TAG = "EditProfileActivity";
 
-    private ImageButton removeProfileImageButton;
     private CircleImageView profileImageView;
-    private ImageButton editProfileImageButton, backButton;
+    private ImageButton editProfileImageButton, removeProfileImageButton;
     private EditText nameField, emailField, dobField, phoneField;
     private Spinner countrySpinner;
-    private Switch notificationsSwitch;
-    private Button saveChangesButton;
+    private Button saveChangesButton, addFacilityButton;
+    private Switch notificationSwitch;
 
-    private Uri imageUri;
     private FirebaseFirestore db;
     private FirebaseStorage storage;
 
-    private String userId;
+    private String deviceId;
+    private Uri imageUri;
 
-    private final ActivityResultLauncher<Intent> imagePickerLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    imageUri = result.getData().getData();
-                    Glide.with(this)
-                            .load(imageUri)
-                            .apply(RequestOptions.circleCropTransform())
-                            .into(profileImageView);
-                    removeProfileImageButton.setVisibility(View.VISIBLE);
-                }
-            });
+    private boolean isAdmin = false;
+    private boolean isOrganizer = false;
+    private boolean notificationsPerm = false;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_profile);
 
         db = FirebaseFirestore.getInstance();
         storage = FirebaseStorage.getInstance();
-        userId = retrieveDeviceId();
 
-        if (userId == null) {
-            Toast.makeText(this, "User not authenticated.", Toast.LENGTH_SHORT).show();
+        deviceId = retrieveDeviceId();
+        if (deviceId == null) {
+            Toast.makeText(this, "Device ID not found. Please log in again.", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
-        initializeUIElements();
-        setupListeners();
-        setupDateOfBirthField();
+        Log.d(TAG, "Device ID: " + deviceId);
+
+        initializeUI();
+        setListeners();
         loadUserProfile();
     }
 
-    private void initializeUIElements() {
+    private void initializeUI() {
         profileImageView = findViewById(R.id.profile_image);
         editProfileImageButton = findViewById(R.id.edit_profile_image_button);
-        backButton = findViewById(R.id.back_button);
+        removeProfileImageButton = findViewById(R.id.remove_profile_image_button);
         nameField = findViewById(R.id.name_field);
         emailField = findViewById(R.id.email_field);
         dobField = findViewById(R.id.dob_field);
         phoneField = findViewById(R.id.phone_field);
         countrySpinner = findViewById(R.id.country_spinner);
-        notificationsSwitch = findViewById(R.id.notifications_switch);
         saveChangesButton = findViewById(R.id.save_changes_button);
-        removeProfileImageButton = findViewById(R.id.remove_profile_image_button);
-    }
+        addFacilityButton = findViewById(R.id.add_facility_button);
+        notificationSwitch = findViewById(R.id.notifications_switch);
 
-    private void setupListeners() {
-        editProfileImageButton.setOnClickListener(v -> openFileChooser());
-        saveChangesButton.setOnClickListener(v -> saveProfileData());
-        backButton.setOnClickListener(v -> finish());
-        removeProfileImageButton.setOnClickListener(v -> removeProfileImage());
+        dobField.setInputType(InputType.TYPE_CLASS_DATETIME);
+        dobField.setOnTouchListener((v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                showDatePicker();
+                return true;
+            }
+            return false;
+        });
 
         nameField.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                updateProfileAvatar();
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // No action needed
             }
 
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Generate avatar as user types their name
+                generateDefaultAvatar(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // No action needed
+            }
         });
+
     }
 
-    private void updateProfileAvatar() {
-        String name = nameField.getText() != null ? nameField.getText().toString().trim() : "";
-        if (!name.isEmpty()) {
-            String firstLetter = String.valueOf(name.charAt(0)).toUpperCase(Locale.US);
-            Bitmap avatarBitmap = AvatarUtil.generateAvatar(firstLetter, 200, this);
-            profileImageView.setImageBitmap(avatarBitmap);
-        } else {
-            profileImageView.setImageResource(R.drawable.ic_profile);
-        }
+    private void setListeners() {
+        editProfileImageButton.setOnClickListener(v -> openFileChooser());
+        saveChangesButton.setOnClickListener(v -> saveProfileData());
+        removeProfileImageButton.setOnClickListener(v -> deleteProfileImage());
+        addFacilityButton.setOnClickListener(v -> addFacility());
+        notificationSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> notificationsPerm = isChecked);
     }
 
     private void openFileChooser() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
-        imagePickerLauncher.launch(intent);
+        startActivityForResult(intent, 1);
     }
 
-    private void removeProfileImage() {
-        StorageReference storageRef = storage.getReference("profile_images/" + userId + ".jpg");
-        storageRef.delete()
-                .addOnSuccessListener(aVoid -> {
-                    DocumentReference userProfileRef = db.collection("users").document(userId);
-                    userProfileRef.update("profileImageUrl", FieldValue.delete())
-                            .addOnSuccessListener(aVoid1 -> {
-                                Toast.makeText(this, "Profile image removed", Toast.LENGTH_SHORT).show();
-                                loadProfileImage();
-                            })
-                            .addOnFailureListener(e -> Toast.makeText(this, "Failed to remove profile image URL", Toast.LENGTH_SHORT).show());
-                })
-                .addOnFailureListener(e -> Toast.makeText(this, "Failed to delete profile image", Toast.LENGTH_SHORT).show());
-    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
-    private void setupDateOfBirthField() {
-        dobField.setInputType(InputType.TYPE_CLASS_NUMBER);
-        dobField.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_calendar, 0);
-        dobField.setOnTouchListener((v, event) -> {
-            if (event.getAction() == MotionEvent.ACTION_UP) {
-                if (event.getRawX() >= (dobField.getRight() - dobField.getCompoundDrawables()[2].getBounds().width())) {
-                    showDatePicker();
-                    return true;
-                }
-            }
-            return false;
-        });
-        dobField.addTextChangedListener(new DateOfBirthTextWatcher());
-    }
-
-    private void showDatePicker() {
-        final Calendar calendar = Calendar.getInstance();
-        int year = calendar.get(Calendar.YEAR);
-        int month = calendar.get(Calendar.MONTH);
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
-
-        DatePickerDialog datePickerDialog = new DatePickerDialog(
-                this,
-                (view, year1, month1, dayOfMonth) -> {
-                    Calendar selectedDate = Calendar.getInstance();
-                    selectedDate.set(year1, month1, dayOfMonth);
-                    dobField.setText(String.format(Locale.US, "%02d/%02d/%04d", month1 + 1, dayOfMonth, year1));
-                },
-                year, month, day);
-
-        datePickerDialog.show();
-    }
-
-    private class DateOfBirthTextWatcher implements TextWatcher {
-        private boolean isUpdating;
-
-        @Override
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-            if (isUpdating) return;
-            String cleanInput = s.toString().replaceAll("[^\\d]", "");
-            StringBuilder formatted = new StringBuilder();
-            if (cleanInput.length() >= 2) {
-                formatted.append(cleanInput.substring(0, 2)).append("/");
-                if (cleanInput.length() >= 4) formatted.append(cleanInput.substring(2, 4)).append("/");
-                if (cleanInput.length() > 4) formatted.append(cleanInput.substring(4));
-            } else {
-                formatted.append(cleanInput);
-            }
-
-            isUpdating = true;
-            dobField.setText(formatted.toString());
-            dobField.setSelection(formatted.length());
-            isUpdating = false;
+        if (requestCode == 1 && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            imageUri = data.getData();
+            Log.d(TAG, "Image URI: " + imageUri.toString());
+            Glide.with(this)
+                    .load(imageUri)
+                    .apply(RequestOptions.circleCropTransform())
+                    .into(profileImageView);
+            removeProfileImageButton.setVisibility(View.VISIBLE);
         }
+    }
 
-        @Override
-        public void afterTextChanged(Editable s) {}
+    private void loadUserProfile() {
+        DocumentReference userRef = db.collection("users").document(deviceId);
+        userRef.get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String name = documentSnapshot.getString("name");
+                        String email = documentSnapshot.getString("email");
+                        String dob = documentSnapshot.getString("dob");
+                        String phone = documentSnapshot.getString("phone");
+                        String country = documentSnapshot.getString("country");
+                        String profileImageUrl = documentSnapshot.getString("profileImageUrl");
+                        Boolean isOrganizerValue = documentSnapshot.getBoolean("isOrganizer");
+                        Boolean isAdminValue = documentSnapshot.getBoolean("isOrganizer");
+                        Boolean notificationsValue = documentSnapshot.getBoolean("notificationsPerm");
+
+                        isOrganizer = isOrganizerValue != null && isOrganizerValue;
+                        isAdmin = isAdminValue != null && isAdminValue;
+                        notificationsPerm = notificationsValue != null && notificationsValue;
+
+                        nameField.setText(name);
+                        emailField.setText(email);
+                        dobField.setText(dob);
+                        phoneField.setText(phone);
+                        notificationSwitch.setChecked(notificationsPerm);
+
+                        if (!TextUtils.isEmpty(country)) {
+                            ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+                                    this, R.array.country_array, android.R.layout.simple_spinner_item);
+                            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            countrySpinner.setAdapter(adapter);
+                            int spinnerPosition = adapter.getPosition(country);
+                            countrySpinner.setSelection(spinnerPosition);
+                        }
+
+                        if (!TextUtils.isEmpty(profileImageUrl)) {
+                            Glide.with(this)
+                                    .load(profileImageUrl)
+                                    .apply(RequestOptions.circleCropTransform())
+                                    .into(profileImageView);
+                            removeProfileImageButton.setVisibility(View.VISIBLE);
+                        } else {
+                            generateDefaultAvatar(name);
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Error loading profile: ", e));
     }
 
     private void saveProfileData() {
-        String name = nameField.getText() != null ? nameField.getText().toString().trim() : "";
-        String email = emailField.getText() != null ? emailField.getText().toString().trim() : "";
-        String dob = dobField.getText() != null ? dobField.getText().toString().trim() : "";
-        String country = countrySpinner.getSelectedItem() != null ? countrySpinner.getSelectedItem().toString() : "";
-        boolean notificationsEnabled = notificationsSwitch.isChecked();
-        String phone = phoneField.getText() != null ? phoneField.getText().toString().trim() : "";
+        String name = nameField.getText().toString().trim();
+        String email = emailField.getText().toString().trim();
+        String dob = dobField.getText().toString().trim();
+        String phone = phoneField.getText().toString().trim();
+        String country = countrySpinner.getSelectedItem().toString();
 
-        if (name.isEmpty() || email.isEmpty() || dob.isEmpty() || country.isEmpty()) {
-            Toast.makeText(this, "Please fill out all required fields", Toast.LENGTH_SHORT).show();
+        if (TextUtils.isEmpty(name) || TextUtils.isEmpty(email) || TextUtils.isEmpty(dob) || TextUtils.isEmpty(country)) {
+            Toast.makeText(this, "Please fill all fields.", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -235,99 +211,94 @@ public class EditProfileActivity extends BaseActivity {
             return;
         }
 
-        Map<String, Object> userProfile = new HashMap<>();
-        userProfile.put("name", name);
-        userProfile.put("email", email);
-        userProfile.put("dob", dob);
-        userProfile.put("country", country);
-        userProfile.put("notificationsEnabled", notificationsEnabled);
-        if (!phone.isEmpty()) userProfile.put("phone", phone);
+        Map<String, Object> profileData = new HashMap<>();
+        profileData.put("name", name);
+        profileData.put("email", email);
+        profileData.put("dob", dob);
+        profileData.put("phone", phone);
+        profileData.put("country", country);
+        profileData.put("isOrganizer", isOrganizer);
+        profileData.put("isAdmin", isAdmin);
+        profileData.put("notificationsPerm", notificationsPerm);
+        profileData.put("events", null);
+        profileData.put("eventsAttending", new HashMap<>());
 
-        DocumentReference userProfileRef = db.collection("users").document(userId);
-        userProfileRef.set(userProfile)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
-                    if (imageUri != null) {
-                        uploadProfileImage(userProfileRef);
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    e.printStackTrace();
-                    Toast.makeText(this, "Error updating profile", Toast.LENGTH_SHORT).show();
-                });
+        DocumentReference userRef = db.collection("users").document(deviceId);
+        userRef.set(profileData)
+                .addOnSuccessListener(aVoid -> Toast.makeText(this, "Profile updated successfully.", Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(e -> Log.e(TAG, "Error saving profile: ", e));
+
+        if (imageUri != null) {
+            uploadProfileImage(userRef);
+        }
     }
 
-    private void uploadProfileImage(DocumentReference userProfileRef) {
-        StorageReference storageRef = storage.getReference("profile_images/" + userId + ".jpg");
+    private void uploadProfileImage(DocumentReference userRef) {
+        if (imageUri == null) {
+            Log.e(TAG, "No imageUri to upload.");
+            return;
+        }
+
+        StorageReference storageRef = storage.getReference("profile_images/" + deviceId + ".jpg");
         storageRef.putFile(imageUri)
-                .addOnSuccessListener(taskSnapshot -> storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                    userProfileRef.update("profileImageUrl", uri.toString())
-                            .addOnSuccessListener(aVoid -> Toast.makeText(this, "Profile image uploaded", Toast.LENGTH_SHORT).show())
-                            .addOnFailureListener(e -> {
-                                e.printStackTrace();
-                                Toast.makeText(this, "Error saving profile image URL", Toast.LENGTH_SHORT).show();
-                            });
-                }))
-                .addOnFailureListener(e -> {
-                    e.printStackTrace();
-                    Toast.makeText(this, "Failed to upload profile image", Toast.LENGTH_SHORT).show();
-                });
+                .addOnSuccessListener(taskSnapshot -> {
+                    Log.d(TAG, "Image uploaded successfully.");
+                    storageRef.getDownloadUrl()
+                            .addOnSuccessListener(uri -> {
+                                Log.d(TAG, "Image URL: " + uri.toString());
+                                userRef.update("profileImageUrl", uri.toString())
+                                        .addOnSuccessListener(aVoid -> Log.d(TAG, "Profile image URL updated in Firestore."))
+                                        .addOnFailureListener(e -> Log.e(TAG, "Failed to update Firestore with image URL.", e));
+                            })
+                            .addOnFailureListener(e -> Log.e(TAG, "Failed to get download URL.", e));
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Error uploading image.", e));
     }
 
-    private void loadUserProfile() {
-        DocumentReference userProfileRef = db.collection("users").document(userId);
-        userProfileRef.get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        String name = documentSnapshot.getString("name");
-                        String email = documentSnapshot.getString("email");
-                        String dob = documentSnapshot.getString("dob");
-                        String country = documentSnapshot.getString("country");
-                        Boolean notificationsEnabled = documentSnapshot.getBoolean("notificationsEnabled");
-                        String phone = documentSnapshot.getString("phone");
-
-                        // Populate UI fields
-                        if (name != null) nameField.setText(name);
-                        if (email != null) emailField.setText(email);
-                        if (dob != null) dobField.setText(dob);
-                        if (country != null) {
-                            ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-                                    this, R.array.country_array, android.R.layout.simple_spinner_item);
-                            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                            countrySpinner.setAdapter(adapter);
-
-                            int spinnerPosition = adapter.getPosition(country);
-                            countrySpinner.setSelection(spinnerPosition);
-                        }
-                        if (phone != null) phoneField.setText(phone);
-                        if (notificationsEnabled != null) notificationsSwitch.setChecked(notificationsEnabled);
-
-                        loadProfileImage();
-                    } else {
-                        Toast.makeText(this, "No profile found. Please complete your profile.", Toast.LENGTH_SHORT).show();
-                    }
+    private void deleteProfileImage() {
+        StorageReference storageRef = storage.getReference("profile_images/" + deviceId + ".jpg");
+        storageRef.delete()
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "Image deleted from Firebase Storage.");
+                    DocumentReference userRef = db.collection("users").document(deviceId);
+                    userRef.update("profileImageUrl", null)
+                            .addOnSuccessListener(aVoid1 -> {
+                                profileImageView.setImageResource(R.drawable.ic_profile);
+                                removeProfileImageButton.setVisibility(View.GONE);
+                                Log.d(TAG, "Profile image URL removed from Firestore.");
+                            })
+                            .addOnFailureListener(e -> Log.e(TAG, "Failed to remove image URL from Firestore.", e));
                 })
-                .addOnFailureListener(e -> {
-                    e.printStackTrace();
-                    Toast.makeText(this, "Failed to load profile", Toast.LENGTH_SHORT).show();
-                });
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to delete image from Firebase Storage.", e));
     }
 
-    private void loadProfileImage() {
-        StorageReference storageRef = storage.getReference("profile_images/" + userId + ".jpg");
-        storageRef.getDownloadUrl()
-                .addOnSuccessListener(uri -> {
-                    Glide.with(this)
-                            .load(uri)
-                            .apply(RequestOptions.circleCropTransform())
-                            .placeholder(R.drawable.ic_profile)
-                            .into(profileImageView);
-                    removeProfileImageButton.setVisibility(View.VISIBLE);
-                })
-                .addOnFailureListener(e -> {
-                    e.printStackTrace();
-                    updateProfileAvatar();
-                    removeProfileImageButton.setVisibility(View.GONE);
-                });
+    private void showDatePicker() {
+        Calendar calendar = Calendar.getInstance();
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH);
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+        DatePickerDialog datePickerDialog = new DatePickerDialog(this, (view, year1, month1, dayOfMonth) -> {
+            String date = String.format(Locale.US, "%02d/%02d/%04d", month1 + 1, dayOfMonth, year1);
+            dobField.setText(date);
+        }, year, month, day);
+
+        datePickerDialog.show();
+    }
+
+    private void generateDefaultAvatar(String name) {
+        String firstLetter = (name != null && !name.isEmpty()) ? name.substring(0, 1).toUpperCase(Locale.US) : "?";
+        Bitmap avatar = AvatarUtil.generateAvatar(firstLetter, 200, this);
+        profileImageView.setImageBitmap(avatar);
+        removeProfileImageButton.setVisibility(View.GONE);
+    }
+
+    private void addFacility() {
+        Intent intent = new Intent(this, AddFacilityView.class);
+        startActivity(intent);
+        isOrganizer = true; // Update the organizer status
+        db.collection("users").document(deviceId).update("isOrganizer", true)
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "Updated isOrganizer to true."))
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to update isOrganizer: ", e));
     }
 }

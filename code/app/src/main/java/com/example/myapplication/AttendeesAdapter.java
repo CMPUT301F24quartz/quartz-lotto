@@ -24,24 +24,24 @@ public class AttendeesAdapter extends RecyclerView.Adapter<AttendeesAdapter.Atte
 
     private List<Attendee> attendeeList;
     private Context context;
-    private String userType; // "admin" or "entrant"
+    private String status; //"waiting", "selected", "confirmed" or "cancelled"
     private String eventId;   // Dynamic eventId
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-    public AttendeesAdapter(List<Attendee> attendeeList, Context context, String userType, String eventId) {
+    public AttendeesAdapter(List<Attendee> attendeeList, Context context, String status, String eventId) {
         this.attendeeList = attendeeList;
         this.context = context;
-        this.userType = userType;
+        this.status = status;
         this.eventId = eventId;
     }
 
     /**
      * Sets the userType and updates the adapter.
      *
-     * @param userType The type of user ("admin" or "entrant").
+     * @param status The status of the user for the event ("waiting", "selected", "confirmed" or "cancelled").
      */
-    public void setUserType(String userType) {
-        this.userType = userType;
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     @NonNull
@@ -61,7 +61,7 @@ public class AttendeesAdapter extends RecyclerView.Adapter<AttendeesAdapter.Atte
 
 
         // Handle Cancel button visibility and functionality
-        if ("entrant".equalsIgnoreCase(userType)) {
+        if ("selected".equalsIgnoreCase(status)) {
             holder.cancelButton.setVisibility(View.VISIBLE);
             holder.cancelButton.setOnClickListener(v -> {
                 // Confirm cancellation with the admin
@@ -124,7 +124,7 @@ public class AttendeesAdapter extends RecyclerView.Adapter<AttendeesAdapter.Atte
         }
 
         DocumentReference eventRef = db.collection("Events").document(eventId);
-        DocumentReference attendeeRef = eventRef.collection("Attendees").document(attendeeId);
+        DocumentReference attendeeRef = eventRef.collection("Waitlist").document(attendeeId);
 
         db.runTransaction((Transaction.Function<Void>) transaction -> {
             // Get currentAttendees
@@ -141,21 +141,21 @@ public class AttendeesAdapter extends RecyclerView.Adapter<AttendeesAdapter.Atte
             }
 
             // Delete the specific attendee document
-            transaction.delete(attendeeRef);
+            transaction.update(attendeeRef, "status", "cancelled");
 
             // Decrement currentAttendees
             transaction.update(eventRef, "currentAttendees", currentAttendeesLong - 1);
+
 
             return null;
         }).addOnSuccessListener(aVoid -> {
             Toast.makeText(context, "Attendee canceled successfully.", Toast.LENGTH_SHORT).show();
             Log.d("AttendeesAdapter", "Attendee " + attendeeId + " canceled successfully.");
+            attendee.setStatus("cancelled");
 
-            // Remove attendee from the list and notify the adapter
             attendeeList.remove(position);
             notifyItemRemoved(position);
 
-            // Optionally, notify other parts of the app (e.g., update maps)
             if (context instanceof EventDetailsActivity) {
                 ((EventDetailsActivity) context).refreshAttendees();
             }

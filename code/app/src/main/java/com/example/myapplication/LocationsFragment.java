@@ -90,15 +90,14 @@ public class LocationsFragment extends Fragment {
         }
 
         db.collection("Events").document(eventId)
-                .collection("Attendees")
-                .whereEqualTo("status", "Attending") // Ensure only active attendees are fetched
+                .collection("Waitlist")
+                .whereEqualTo("status", "waiting") // Ensure only active attendees are fetched
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     mapView.getOverlays().clear(); // Clear existing markers
 
                     List<DocumentSnapshot> documents = queryDocumentSnapshots.getDocuments();
                     if (documents.isEmpty()) {
-                        Toast.makeText(getContext(), "No attendees to display.", Toast.LENGTH_SHORT).show();
                         Log.d(TAG, "No attendees found for eventId: " + eventId);
                         mapView.invalidate(); // Refresh the map
                         return;

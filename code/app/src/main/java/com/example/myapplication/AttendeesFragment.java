@@ -5,6 +5,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -13,6 +15,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.myapplication.Controllers.EntrantListController;
 import com.example.myapplication.Models.Attendee;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -28,12 +31,19 @@ public class AttendeesFragment extends Fragment {
 
     private static final String TAG = "AttendeesFragment";
     private static final String ARG_EVENT_ID = "eventId";
+    private EntrantListController controller;
 
-    private RecyclerView recyclerView;
-    private AttendeesAdapter attendeesAdapter;
-    private List<Attendee> attendeeList = new ArrayList<>();
+    private RecyclerView recyclerViewSelected, recyclerViewConfirmed, recyclerViewCancelled;
+    private AttendeesAdapter selectedAdapter, confirmedAdapter, cancelledAdapter;
+    private TextView noneConfirmed, noneSelected, noneCancelled;
+    private Button drawButton;
+    private List<Attendee> selectedList = new ArrayList<>();
+    private String selected = "selected";
+    private List<Attendee> confirmedList = new ArrayList<>();
+    private String confirmed = "confirmed";
+    private List<Attendee> cancelledList = new ArrayList<>();
+    private String cancelled = "cancelled";
     private String eventId;
-    private String userType = "entrant"; // default
 
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
@@ -43,8 +53,8 @@ public class AttendeesFragment extends Fragment {
      * @param eventId The ID of the event.
      * @return A new instance of fragment AttendeesFragment.
      */
-    public static AttendeesFragment newInstance(String eventId) {
-        AttendeesFragment fragment = new AttendeesFragment();
+    public static com.example.myapplication.AttendeesFragment newInstance(String eventId) {
+        com.example.myapplication.AttendeesFragment fragment = new com.example.myapplication.AttendeesFragment();
         Bundle args = new Bundle();
         args.putString(ARG_EVENT_ID, eventId);
         fragment.setArguments(args);
@@ -73,27 +83,48 @@ public class AttendeesFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_attendees, container, false);
+        controller = new EntrantListController();
+        recyclerViewSelected = view.findViewById(R.id.recyclerViewSelected);
+        recyclerViewConfirmed = view.findViewById(R.id.recyclerViewConfirmed);
+        recyclerViewCancelled = view.findViewById(R.id.recyclerViewCancelled);
 
-        // Initialize RecyclerView
-        recyclerView = view.findViewById(R.id.attendeesRecyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        attendeesAdapter = new AttendeesAdapter(attendeeList, getContext(), userType, eventId);
-        recyclerView.setAdapter(attendeesAdapter);
+        noneConfirmed = view.findViewById(R.id.noneConfirmed);
+        noneSelected = view.findViewById(R.id.noneSelected);
+        noneCancelled = view.findViewById(R.id.noneCancelled);
+        drawButton = view.findViewById(R.id.draw_button);
+        drawButton.setOnClickListener(v -> controller.drawAttendees(eventId, true));
 
-        // Fetch userType and then attendees
-        if (getActivity() instanceof BaseActivity) {
-            ((BaseActivity) getActivity()).getUserType(new BaseActivity.UserTypeCallback() {
-                @Override
-                public void onCallback(String type) {
-                    userType = type;
-                    attendeesAdapter.setUserType(userType);
-                    attendeesAdapter.notifyDataSetChanged();
-                    fetchAttendees();
-                }
-            });
-        } else {
-            fetchAttendees();
-        }
+        recyclerViewSelected.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerViewConfirmed.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerViewCancelled.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        selectedAdapter = new AttendeesAdapter(selectedList, getContext(), selected, eventId);
+        confirmedAdapter = new AttendeesAdapter(confirmedList, getContext(), confirmed, eventId);
+        cancelledAdapter = new AttendeesAdapter(cancelledList, getContext(), cancelled, eventId);
+
+        recyclerViewSelected.setAdapter(selectedAdapter);
+        recyclerViewConfirmed.setAdapter(confirmedAdapter);
+        recyclerViewCancelled.setAdapter(cancelledAdapter);
+
+
+
+//        // Fetch userType and then attendees
+//        if (getActivity() instanceof BaseActivity) {
+//            ((BaseActivity) getActivity()).getUserType(new BaseActivity.UserTypeCallback() {
+//                @Override
+//                public void onCallback(String status) {
+//                    selectedAdapter.setStatus(status);
+//                    confirmedAdapter.setStatus(status);
+//                    cancelledAdapter.setStatus(status);
+//                    selectedAdapter.notifyDataSetChanged();
+//                    confirmedAdapter.notifyDataSetChanged();
+//                    cancelledAdapter.notifyDataSetChanged();
+//                    fetchAttendees();
+//                }
+//            });
+//        } else {
+        fetchAttendees();
+
 
         return view;
     }
@@ -108,23 +139,34 @@ public class AttendeesFragment extends Fragment {
         }
 
         db.collection("Events").document(eventId)
-                .collection("Attendees")
-                .whereEqualTo("status", "Attending")
+                .collection("Waitlist")
                 .get()
                 .addOnSuccessListener(new com.google.android.gms.tasks.OnSuccessListener<QuerySnapshot>() {
                     @Override
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                        attendeeList.clear();
+                        selectedList.clear();
+                        confirmedList.clear();
+                        cancelledList.clear();
                         for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                             Attendee attendee = doc.toObject(Attendee.class);
                             if (attendee != null) {
                                 attendee.setUserId(doc.getId());
-                                attendeeList.add(attendee);
+                                String status = attendee.getStatus();
+                                if ("selected".equalsIgnoreCase(status)) {
+                                    selectedList.add(attendee);
+                                } else if ("confirmed".equalsIgnoreCase(status)) {
+                                    confirmedList.add(attendee);
+                                } else if ("cancelled".equalsIgnoreCase(status)) {
+                                    cancelledList.add(attendee);
+                                }
                                 Log.d(TAG, "Attendee fetched: " + attendee.getUserName());
                             }
                         }
-                        attendeesAdapter.notifyDataSetChanged();
-                        Log.d(TAG, "Number of attendees fetched: " + attendeeList.size());
+                        selectedAdapter.notifyDataSetChanged();
+                        confirmedAdapter.notifyDataSetChanged();
+                        cancelledAdapter.notifyDataSetChanged();
+                        updateEmptyListMessages();
+                        Log.d(TAG, "Number of attendees fetched: " + selectedList.size());
                     }
                 })
                 .addOnFailureListener(e -> {
@@ -132,4 +174,35 @@ public class AttendeesFragment extends Fragment {
                     Log.e(TAG, "Error fetching attendees: ", e);
                 });
     }
+    private void updateEmptyListMessages() {
+
+
+        // Confirmed List
+        if (confirmedList.isEmpty()) {
+            noneConfirmed.setVisibility(View.VISIBLE);
+            recyclerViewConfirmed.setVisibility(View.GONE);
+        } else {
+            noneConfirmed.setVisibility(View.GONE);
+            recyclerViewConfirmed.setVisibility(View.VISIBLE);
+        }
+
+        // Selected List
+        if (selectedList.isEmpty()) {
+            noneSelected.setVisibility(View.VISIBLE);
+            recyclerViewSelected.setVisibility(View.GONE);
+        } else {
+            noneSelected.setVisibility(View.GONE);
+            recyclerViewSelected.setVisibility(View.VISIBLE);
+        }
+
+        // Cancelled List
+        if (cancelledList.isEmpty()) {
+            noneCancelled.setVisibility(View.VISIBLE);
+            recyclerViewCancelled.setVisibility(View.GONE);
+        } else {
+            noneCancelled.setVisibility(View.GONE);
+            recyclerViewCancelled.setVisibility(View.VISIBLE);
+        }
+    }
+
 }
