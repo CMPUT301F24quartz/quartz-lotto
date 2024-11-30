@@ -89,6 +89,8 @@ public class Event {
         this.eventName = eventName;
     }
 
+
+
     // ------------------------ the normal ones ------------------------
 
     @PropertyName("eventId")
