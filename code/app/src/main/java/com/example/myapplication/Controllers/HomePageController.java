@@ -102,4 +102,3 @@ public class HomePageController extends ArrayAdapter<Event> {
 //        return convertView;
 
 }
-
