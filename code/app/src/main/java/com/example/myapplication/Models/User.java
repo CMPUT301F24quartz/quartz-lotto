@@ -364,7 +364,7 @@ public class User {
 
         /**
          * Retrieves the status of the attendance.
-         * @return
+         * @return Status of the attendance.
          */
 
         @PropertyName("status")

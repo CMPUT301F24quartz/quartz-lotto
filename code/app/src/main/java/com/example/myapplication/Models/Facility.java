@@ -80,8 +80,6 @@ public class Facility {
      * Retrieves the unique identifier for the facility.
      * @return The unique identifier for the facility.
      */
-
-
     public String getId() {
         return id;
     }
